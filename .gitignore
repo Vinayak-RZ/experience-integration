@@ -1,3 +1,13 @@
 
 # Cursor config
 .cursor/skills-catalog/.cache/
+
+# Node / Next.js
+node_modules/
+packages/*/node_modules/
+packages/*/.next/
+packages/*/out/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example

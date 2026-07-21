@@ -1,38 +1,66 @@
 # experience-integration
 
-Engineering workspace with the **[cursor-config-coding](https://github.com/Vinayak-RZ/cursor-config-coding)** Cursor configuration vendored for cloud agents and local use.
+**Stamped L6 — Experience & Integration.** Ops-first plant control room: Today home, EMS alarms, prescription triage, dual-mode analyst, claim-safe savings display, exports, and (later) public API/webhooks.
 
-## What's included
+Platform technical SoT is the **[stamped-external](https://github.com/Vinayak-RZ/stamped-external)** submodule at [`external/`](external/). Do not fork contracts or architecture docs — bump the submodule.
 
-| Asset | Count / notes |
-|-------|----------------|
-| Skills | 36 under `.cursor/skills/` |
-| Rules | 21 `.mdc` files under `.cursor/rules/` |
-| Orchestration | `AGENTS.md` |
-| Manifest | `skills-manifest.json` |
-| Docs | `docs/` (Spec Kit, MCP, learning, stack catalog) |
-| MCP | Agent Patterns Catalog via `.cursor/mcp.json` |
+## What this repo is
 
-Source config: [Vinayak-RZ/cursor-config-coding](https://github.com/Vinayak-RZ/cursor-config-coding)
+| Is | Is not |
+|----|--------|
+| Dashboard + EMS console + Rx queue UX | L3 detection / L5 workflow system of record |
+| Dual-mode analyst UX (Mode A/B) | RAG / LangGraph runtime (L4) |
+| Tenant-scoped BFF composing L2/L4/L5 | Direct Timescale / OT writes |
+| Claim-safe savings display (`ops_confirmed`) | Implying DISCOM/bill verification from ops |
+| Public API + webhooks (P2) | SCADA HMI / ESG filing system |
 
-## Workflow (summary)
+**Claim rule:** customer-facing “verified” in P0 means **`ops_confirmed`** (telemetry clearance). Bill-reconciled `verified` is deferred ([ADR-020](external/decisions/ADR-020-l5-mv-claim-governance.md)).
 
-1. **Ponytail** — read before any code change (minimal, production-grade diffs)
-2. **Nawab plans** — mandatory in Plan mode
-3. **Spec Kit** — for greenfield / multi-phase features (`docs/SPEC_KIT.md`)
-4. Plan → approve → implement → validate → conventional commit
+## Layout
 
-## Spec Kit scaffold (optional)
-
-Skills are already present. To scaffold `.specify/` in this repo (requires PowerShell + `uv`):
-
-```powershell
-.\scripts\install-spec-kit.ps1 -Target "$(pwd)"
+```text
+external/                 # stamped-external submodule (architecture, contracts, ADRs, design)
+packages/
+  web/                    # Next.js App Router — seeded from external/consumers/stamped-l6
+  api/                    # BFF (planned)
+  worker/                 # PDF/CSV/webhooks jobs (planned P1+)
+docs/architecture/        # Repo-local boundary snapshot
+.cursor/                  # Coding skills/rules (cursor-config-coding)
 ```
 
-## Updating the config
+## Setup
+
+```bash
+git clone --recurse-submodules https://github.com/Vinayak-RZ/experience-integration.git
+cd experience-integration
+# or after clone:
+git submodule update --init --recursive
+
+cd packages/web && npm install && npm test && npm run typecheck
+```
+
+Agents / CI must run `git submodule update --init` before build. Contracts: `./external/scripts/contract-check.sh`.
+
+## Read first
+
+1. [external/technical/layers/L6-experience-and-integration.md](external/technical/layers/L6-experience-and-integration.md)
+2. [external/handoff/stamped-l6-architecture-handoff.md](external/handoff/stamped-l6-architecture-handoff.md)
+3. [external/handoff/stamped-l6-ui-ux-charter.md](external/handoff/stamped-l6-ui-ux-charter.md)
+4. [external/handoff/stamped-l6-build-plan.md](external/handoff/stamped-l6-build-plan.md)
+5. [AGENTS.md](AGENTS.md)
+
+## Cursor coding config
+
+Also includes the **[cursor-config-coding](https://github.com/Vinayak-RZ/cursor-config-coding)** workflow (ponytail, nawab-plans, Spec Kit, 36 skills). Refresh with:
 
 ```bash
 ./scripts/sync-from-upstream.sh
-# Review diff, then commit
 ```
+
+## Upstream layers
+
+| Layer | Repo | L6 uses |
+|-------|------|---------|
+| L5 | closure-verification | Alarms, workflow, SSE, ack/defer |
+| L4 | knowledge-reasoning | Analyst + prescription text |
+| L2 | universal-repositary | Ledger / timeseries reads (HTTP only) |
