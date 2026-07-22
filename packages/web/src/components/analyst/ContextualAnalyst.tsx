@@ -2,27 +2,43 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { AnalystContextEnvelope } from "@/lib/types";
-import { visibleContextChips } from "@/lib/analyst-context";
-import { GhostButton, PrimaryButton } from "@/components/ui/primitives";
+import {
+  fixtureAnalystReply,
+  proposeActionFromReply,
+  suggestionPrompts,
+  visibleContextChips,
+  type AnalystMessage,
+  type ProposedAction,
+} from "@/lib/analyst-context";
+import { GhostButton, PrimaryButton, SecondaryButton } from "@/components/ui/primitives";
 
 export function ContextualAnalyst({
   open,
   onClose,
   envelope,
+  returnFocusRef,
 }: {
   open: boolean;
   onClose: () => void;
   envelope: AnalystContextEnvelope;
+  /** Element that opened the panel — restored on close (a11y). */
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
 }) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const [excluded, setExcluded] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
+  const [messages, setMessages] = useState<AnalystMessage[]>([]);
+  const [proposal, setProposal] = useState<ProposedAction | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
-  const chips = useMemo(
-    () => visibleContextChips({ ...envelope, excludeKeys: excluded }),
+  const liveEnvelope = useMemo(
+    () => ({ ...envelope, excludeKeys: excluded }),
     [envelope, excluded],
   );
+  const chips = useMemo(() => visibleContextChips(liveEnvelope), [liveEnvelope]);
+  const suggestions = useMemo(() => suggestionPrompts(envelope), [envelope]);
 
   useEffect(() => {
     if (!open) return;
@@ -33,6 +49,26 @@ export function ContextualAnalyst({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (open) return;
+    returnFocusRef?.current?.focus();
+  }, [open, returnFocusRef]);
+
+  function send(question: string) {
+    const q = question.trim();
+    if (!q) return;
+    const userMsg: AnalystMessage = {
+      id: `u_${Date.now()}`,
+      role: "user",
+      content: q,
+    };
+    const reply = fixtureAnalystReply(liveEnvelope, q);
+    setMessages((prev) => [...prev, userMsg, reply]);
+    setProposal(proposeActionFromReply(liveEnvelope, reply));
+    setConfirming(false);
+    setDraft("");
+  }
 
   if (!open) return null;
 
@@ -51,14 +87,15 @@ export function ContextualAnalyst({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        data-analyst-mode="A"
         style={{
           position: "fixed",
           top: 0,
           right: 0,
           height: "100vh",
-          width: 380,
+          width: 400,
           maxWidth: "92vw",
-          background: "var(--forge-surface-lowest)",
+          background: "var(--forge-surface-container-lowest)",
           boxShadow: "var(--forge-shadow-panel)",
           zIndex: 50,
           display: "flex",
@@ -76,11 +113,14 @@ export function ContextualAnalyst({
           }}
         >
           <div>
-            <h2 id={titleId} style={{ margin: 0, fontSize: 15, fontFamily: "var(--forge-font-display)" }}>
+            <h2
+              id={titleId}
+              style={{ margin: 0, fontSize: 15, fontFamily: "var(--forge-font-display)" }}
+            >
               Stamped Analyst
             </h2>
             <p style={{ margin: "4px 0 0", fontSize: 11, opacity: 0.85 }}>
-              Context from this screen · RAG via L4
+              Mode A · context from this screen
             </p>
           </div>
           <button
@@ -122,13 +162,87 @@ export function ContextualAnalyst({
               ))
             )}
           </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+            {suggestions.map((s) => (
+              <GhostButton key={s} onClick={() => send(s)}>
+                {s}
+              </GhostButton>
+            ))}
+          </div>
         </div>
 
-        <div style={{ flex: 1, padding: 16, overflow: "auto", fontSize: 13, lineHeight: 1.5 }}>
-          <p style={{ margin: 0, color: "var(--forge-on-surface-variant)" }}>
-            Ask about this screen. Answers cite L4 retrieval; irreversible plant actions always need
-            your confirm.
-          </p>
+        <div
+          style={{ flex: 1, padding: 16, overflow: "auto", fontSize: 13, lineHeight: 1.5 }}
+          aria-live="polite"
+        >
+          {messages.length === 0 ? (
+            <p style={{ margin: 0, color: "var(--forge-on-surface-variant)" }}>
+              Ask about this screen. Answers cite L4 retrieval; irreversible plant actions always
+              need your confirm.
+            </p>
+          ) : (
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 12 }}>
+              {messages.map((m) => (
+                <li key={m.id}>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 11 }}>
+                    {m.role === "user" ? "You" : "Analyst"}
+                  </p>
+                  <p style={{ margin: "4px 0 0" }}>{m.content}</p>
+                  {m.citations?.length ? (
+                    <ul style={{ margin: "6px 0 0", paddingLeft: 16, fontSize: 12 }}>
+                      {m.citations.map((c) => (
+                        <li key={c.id}>
+                          [{c.path ?? "H"}] {c.title}
+                          {c.snippet ? ` — ${c.snippet}` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {proposal ? (
+            <div
+              style={{
+                marginTop: 16,
+                padding: 12,
+                borderRadius: 8,
+                border: "1px solid var(--forge-outline-variant)",
+                background: "var(--forge-surface-container)",
+              }}
+            >
+              <p style={{ margin: 0, fontWeight: 700 }}>Proposed action</p>
+              <p style={{ margin: "6px 0 0", fontSize: 13 }}>{proposal.summary}</p>
+              {!confirming ? (
+                <div style={{ marginTop: 10 }}>
+                  <SecondaryButton onClick={() => setConfirming(true)}>
+                    Preview {proposal.label}
+                  </SecondaryButton>
+                </div>
+              ) : (
+                <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <PrimaryButton
+                    onClick={() => {
+                      // ponytail: no auto-write — confirm gate only; L5 wire in consumer
+                      setToast(`${proposal.label} confirmed (fixture — not sent upstream)`);
+                      setProposal(null);
+                      setConfirming(false);
+                    }}
+                  >
+                    Confirm {proposal.label}
+                  </PrimaryButton>
+                  <GhostButton onClick={() => setConfirming(false)}>Cancel</GhostButton>
+                </div>
+              )}
+            </div>
+          ) : null}
+          {toast ? (
+            <p role="status" style={{ margin: "12px 0 0", fontSize: 12, color: "var(--forge-good)" }}>
+              {toast}
+            </p>
+          ) : null}
         </div>
 
         <div style={{ padding: 14, borderTop: "1px solid var(--forge-outline-variant)" }}>
@@ -140,6 +254,9 @@ export function ContextualAnalyst({
               id="analyst-input"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") send(draft);
+              }}
               placeholder="Ask about this screen…"
               style={{
                 flex: 1,
@@ -149,14 +266,7 @@ export function ContextualAnalyst({
                 fontSize: 13,
               }}
             />
-            <PrimaryButton
-              onClick={() => {
-                // ponytail: fixture send — wire L4 HTTP in consumer P1
-                setDraft("");
-              }}
-            >
-              Send
-            </PrimaryButton>
+            <PrimaryButton onClick={() => send(draft)}>Send</PrimaryButton>
           </div>
           <div style={{ marginTop: 10 }}>
             <GhostButton onClick={onClose}>Done</GhostButton>

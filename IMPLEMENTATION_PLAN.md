@@ -4,34 +4,34 @@ overview: Deliver the complete Stamped L6 Experience & Integration product as on
 todos:
   - id: phase-0-authority-spec
     content: "Phase 0: establish lived authority docs, Spec Kit artifacts, design context, and upstream L5/L2 agent prompts"
-    status: pending
+    status: completed
   - id: phase-a-foundation
     content: "Phase A: migrate to pnpm workspace and build contracts, Fastify, PostgreSQL, pg-boss, CI, and local compose foundation"
-    status: pending
+    status: completed
   - id: phase-b-auth-tenancy
     content: "Phase B: implement local auth, organizations, plant switching, RBAC, admin, MFA, sessions, and audit"
-    status: pending
+    status: completed
   - id: phase-c-forge-ux
     content: "Phase C: implement the Forge responsive shell, design system, route states, navigation, accessibility, and chart foundation"
-    status: pending
+    status: completed
   - id: phase-d-integrations-realtime
     content: "Phase D: implement L2/L4/L5 adapters, canonical mappings, durable events, and resumable SSE without Redis"
-    status: pending
+    status: completed
   - id: phase-e-ops-product
     content: "Phase E: deliver Today, alarms, prescriptions, evidence, ledger, CSV, and operational E2E flows"
-    status: pending
+    status: completed
   - id: phase-f-analytics-analyst
     content: "Phase F: deliver energy/equipment/TOD/intensity analytics and both analyst modes with confirmed actions"
-    status: pending
+    status: completed
   - id: phase-g-reports-sustainability
     content: "Phase G: deliver pg-boss report lifecycle, PDF/XLSX, sustainability metrics, focused BRSR/PAT output, and Export Centre"
-    status: pending
+    status: completed
   - id: phase-h-enterprise
     content: "Phase H: deliver public API, API keys, webhooks, Entra, Power BI, product telemetry, and AWS CDK definitions"
-    status: pending
+    status: completed
   - id: phase-n-hardening
     content: "Phase N: complete full E2E, security review, performance, accessibility, validation orchestrator, docs, and runbooks"
-    status: pending
+    status: completed
   - id: cutover-aws-pilot
     content: "Cutover: deploy and certify the AWS Mumbai pilot with migrations, smoke, integration acceptance, and rollback proof"
     status: pending

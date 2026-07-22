@@ -1,11 +1,19 @@
 import { AppShell } from "@/components/shell/AppShell";
-import { PageHead, Panel, StatusChip } from "@/components/ui/primitives";
-import { claimBadgeLabel, formatInr } from "@/lib/format";
-import { DEMO_PLANT, connectionFixture, prescriptionsFixture } from "@/fixtures/demo";
+import { PageHead } from "@/components/ui/primitives";
+import { SavingsLedger } from "@/components/ledger/SavingsLedger";
+import { ExportCentre } from "@/components/reports/ExportCentre";
+import {
+  DEMO_PLANT,
+  connectionFixture,
+  demoCriticalAlarmCount,
+  demoOpsConfirmedInr,
+  ledgerFixture,
+  prescriptionsFixture,
+  reportJobsFixture,
+} from "@/fixtures/demo";
+import { formatInr } from "@/lib/format";
 
 export default function ReportsPage() {
-  const closed = prescriptionsFixture.filter((p) => p.lane === "closed");
-
   return (
     <AppShell
       active="reports"
@@ -13,43 +21,21 @@ export default function ReportsPage() {
       role="plant_head"
       connection={connectionFixture}
       screenTitle="Reports and ledger"
-      contextSummary={["Ops-confirmed ledger", "Export centre entry"]}
-      criticalAlarmCount={2}
+      contextSummary={[
+        `Ops-confirmed MTD ${formatInr(demoOpsConfirmedInr())}`,
+        "Approval-gated packs",
+      ]}
+      criticalAlarmCount={demoCriticalAlarmCount()}
     >
-      <PageHead eyebrow="Exports" title="Ledger snapshot" />
-      <Panel>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr>
-              <th scope="col" style={{ textAlign: "left", padding: 8 }}>
-                Prescription
-              </th>
-              <th scope="col" style={{ textAlign: "right", padding: 8 }}>
-                Realised
-              </th>
-              <th scope="col" style={{ textAlign: "left", padding: 8 }}>
-                Claim
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {closed.map((p) => {
-              const badge = claimBadgeLabel(p.verificationStatus);
-              return (
-                <tr key={p.id} style={{ borderTop: "1px solid var(--forge-outline-variant)" }}>
-                  <td style={{ padding: 8 }}>{p.title}</td>
-                  <td className="tabular" style={{ padding: 8, textAlign: "right" }}>
-                    {formatInr(p.realisedInr ?? 0)}
-                  </td>
-                  <td style={{ padding: 8 }}>
-                    <StatusChip tone={badge.tone}>{badge.label}</StatusChip>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </Panel>
+      <PageHead eyebrow="Exports" title="Reports & ledger" />
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <ExportCentre
+          ledger={ledgerFixture}
+          prescriptions={prescriptionsFixture}
+          initialReports={reportJobsFixture}
+        />
+        <SavingsLedger rows={ledgerFixture} />
+      </div>
     </AppShell>
   );
 }

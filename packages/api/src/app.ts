@@ -3,18 +3,37 @@ import Fastify, {
   type FastifyServerOptions,
 } from "fastify";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import sensible from "@fastify/sensible";
+import { registerAdminRoutes } from "./admin/routes.js";
+import { registerAlarmRoutes } from "./alarms/routes.js";
+import type { AlarmStore } from "./alarms/service.js";
 import type { Auth } from "./auth/index.js";
 import { registerAuthRoutes } from "./auth/routes.js";
 import { type Env, loadEnv } from "./config.js";
+import type { Db } from "./db/client.js";
+import { registerEventRoutes } from "./events/routes.js";
+import { registerExportRoutes } from "./exports/routes.js";
+import { registerIntegrationRoutes } from "./integrations/routes.js";
+import type { Mailer } from "./mail/mailer.js";
+import { registerPlantRoutes } from "./plants/routes.js";
 import { problemHandler } from "./problems.js";
+import { registerPublicApiRoutes } from "./public/routes.js";
+import { registerReportRoutes } from "./reports/routes.js";
+import { registerTelemetryRoutes } from "./telemetry/routes.js";
+import type { L5WorkflowClient } from "./upstream/l5/client.js";
+import type pg from "pg";
 
 export type AppDeps = {
   env?: Env;
-  /** Optional readiness probe — returns true when dependencies are healthy. */
   checkReady?: () => Promise<boolean> | boolean;
-  /** Better Auth instance — required for /api/auth and /api/me. */
   auth?: Auth;
+  mailer?: Mailer;
+  db?: Db;
+  pool?: pg.Pool;
+  l5?: L5WorkflowClient | null;
+  alarmFixture?: AlarmStore;
+  enqueueReportGenerate?: (reportJobId: string) => Promise<string | null>;
 };
 
 export async function buildApp(
@@ -27,7 +46,13 @@ export async function buildApp(
       : {
           level: env.LOG_LEVEL,
           base: { service: "l6-api" },
-          redact: ["req.headers.authorization", "req.headers.cookie"],
+          redact: [
+            "req.headers.authorization",
+            "req.headers.cookie",
+            "password",
+            "newPassword",
+            "token",
+          ],
         };
 
   const app = Fastify({
@@ -45,7 +70,20 @@ export async function buildApp(
     origin: env.WEB_ORIGIN,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Request-Id"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "X-Request-Id",
+      "Last-Event-ID",
+    ],
+  });
+
+  await app.register(rateLimit, {
+    global: true,
+    max: env.NODE_ENV === "test" ? 10_000 : 300,
+    timeWindow: "1 minute",
+    ban: 0,
   });
 
   app.setErrorHandler(problemHandler);
@@ -89,16 +127,41 @@ export async function buildApp(
     return { status: "ready", service: "l6-api" };
   });
 
-  // Product BFF routes. Public /v1 is Phase H — deferred (DEC-010).
   app.get("/api/meta", async () => ({
     name: "stamped-l6-bff",
     surface: "product",
-    public_api: false,
+    public_api: Boolean(opts.db),
     auth: Boolean(opts.auth),
   }));
 
-  if (opts.auth) {
-    await registerAuthRoutes(app, opts.auth);
+  await registerTelemetryRoutes(app, { db: opts.db });
+
+  if (opts.db) {
+    await registerPublicApiRoutes(app, { db: opts.db });
+  }
+
+  if (opts.auth && opts.mailer) {
+    await registerAuthRoutes(app, opts.auth, opts.mailer, env);
+  }
+  if (opts.auth && opts.db) {
+    await registerAdminRoutes(app, opts.auth, opts.db);
+    await registerPlantRoutes(app, opts.auth, opts.db);
+    await registerAlarmRoutes(app, {
+      auth: opts.auth,
+      db: opts.db,
+      l5: opts.l5,
+      fixture: opts.alarmFixture,
+    });
+    await registerExportRoutes(app, { auth: opts.auth, db: opts.db });
+    await registerReportRoutes(app, {
+      auth: opts.auth,
+      db: opts.db,
+      enqueueGenerate: opts.enqueueReportGenerate,
+    });
+    await registerIntegrationRoutes(app, { auth: opts.auth, db: opts.db });
+  }
+  if (opts.auth && opts.db && opts.pool) {
+    await registerEventRoutes(app, opts.auth, opts.db, opts.pool);
   }
 
   return app;

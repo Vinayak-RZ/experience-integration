@@ -8,7 +8,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "node --import tsx src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test --test-concurrency=1 tests/**/*.test.ts",
+    "test": "tsx --test --test-concurrency=1 'tests/**/*.test.ts'",
     "build": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate-cli.ts"
@@ -16,6 +16,7 @@
   "dependencies": {
     "@fastify/cookie": "11.0.2",
     "@fastify/cors": "11.2.0",
+    "@fastify/rate-limit": "catalog:",
     "@fastify/sensible": "catalog:",
     "@stamped/l6-contracts": "workspace:*",
     "better-auth": "1.6.23",

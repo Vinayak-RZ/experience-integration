@@ -2,20 +2,24 @@
   "name": "@stamped/l6-web",
   "version": "0.1.0",
   "private": true,
-  "description": "Experience & Integration (L6) web \u2014 ops-first control room (seeded from stamped-external)",
+  "description": "Experience & Integration (L6) web — ops-first control room (seeded from stamped-external)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/**/*.test.ts"
+    "test": "tsx --test tests/**/*.test.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
+    "echarts": "^6.1.0",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
   "devDependencies": {
+    "@playwright/test": "1.55.0",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",

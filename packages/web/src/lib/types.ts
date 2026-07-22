@@ -73,6 +73,31 @@ export interface TodaySignal {
   href: string;
 }
 
+/** Subset of L2 LedgerEntry for claim-safe L6 surfaces. */
+export type LedgerEntryType =
+  | "realised_savings"
+  | "potential_savings"
+  | "opportunity_cost";
+
+export interface LedgerEntry {
+  entryId: string;
+  plantId: string;
+  prescriptionId: string;
+  title: string;
+  entryType: LedgerEntryType;
+  periodStart: string;
+  periodEnd: string;
+  potentialInr: number;
+  realisedInr: number;
+  verificationStatus: VerificationStatus;
+  mvMethod: string;
+  baselineId: string;
+  emissionFactorRef: string | null;
+  modeledReason?: string;
+  /** Bill path only — never set from ops confirmation alone. */
+  billLineRefs?: string[];
+}
+
 export type FocusEntityType =
   | "alarm"
   | "prescription"

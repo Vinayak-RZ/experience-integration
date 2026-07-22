@@ -1,10 +1,12 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin, twoFactor } from "better-auth/plugins";
+import type { Env } from "../config.js";
 import type { Db } from "../db/client.js";
 import { authSchema } from "../db/auth-schema.js";
-import type { Env } from "../config.js";
+import type { Mailer } from "../mail/mailer.js";
 
-export function createAuth(db: Db, env: Env) {
+export function createAuth(db: Db, env: Env, mailer: Mailer) {
   return betterAuth({
     appName: "Stamped L6",
     baseURL: env.BETTER_AUTH_URL,
@@ -14,20 +16,50 @@ export function createAuth(db: Db, env: Env) {
       provider: "pg",
       schema: authSchema,
     }),
+    emailVerification: {
+      sendOnSignUp: false,
+      sendVerificationEmail: async ({ user, url }) => {
+        await mailer.send({
+          to: user.email,
+          subject: "Verify your Stamped account",
+          text: `Verify your email: ${url}`,
+          kind: "verification",
+        });
+      },
+    },
     emailAndPassword: {
       enabled: true,
-      // Public self-registration is forbidden — invites land in a later commit.
       disableSignUp: true,
       minPasswordLength: 12,
+      resetPasswordTokenExpiresIn: env.AUTH_TOKEN_TTL_SECONDS,
+      sendResetPassword: async ({ user, url }) => {
+        await mailer.send({
+          to: user.email,
+          subject: "Reset your Stamped password",
+          text: `Reset your password: ${url}`,
+          kind: "password_reset",
+        });
+      },
+      revokeSessionsOnPasswordReset: true,
     },
     session: {
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
       cookieCache: {
-        enabled: true,
+        // Disable in tests so revoke-other-sessions is observable immediately.
+        enabled: env.NODE_ENV !== "test",
         maxAge: 60 * 5,
       },
     },
+    plugins: [
+      admin({
+        defaultRole: "user",
+        adminRoles: ["admin"],
+      }),
+      twoFactor({
+        issuer: "Stamped L6",
+      }),
+    ],
     advanced: {
       useSecureCookies: env.NODE_ENV === "production",
       defaultCookieAttributes: {

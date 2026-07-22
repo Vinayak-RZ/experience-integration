@@ -21,6 +21,57 @@ const EnvSchema = z.object({
     .default("dev-only-stamped-l6-auth-secret-change-me"),
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3001"),
   WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_FROM: z.string().email().default("noreply@stamped.local"),
+  /** Password reset / invite token lifetime (seconds). */
+  AUTH_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  /** L5 Closure & Verification base URL (server-side only). */
+  L5_BASE_URL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().url().default("http://127.0.0.1:8105"),
+  ),
+  L5_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
+  L5_AUTH_TOKEN: z.string().optional(),
+  /** Upstream gaps — default off until OpenAPI publishes the routes. */
+  L5_FEATURE_ALARM_ACK: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  L5_FEATURE_ALARM_ESCALATE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  L5_FEATURE_ALARM_UNSILENCE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  /** L2 query API — never L2_DATABASE_URL. */
+  L2_BASE_URL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().url().default("http://127.0.0.1:8102"),
+  ),
+  L2_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
+  L2_SERVICE_KEY: z.string().optional(),
+  L2_FEATURE_LEDGER: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  L2_FEATURE_BASELINES: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  /** L4 Knowledge & Reasoning — fixture mode until live OpenAPI. */
+  L4_BASE_URL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().url().default("http://127.0.0.1:8104"),
+  ),
+  L4_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
+  L4_AUTH_TOKEN: z.string().optional(),
+  L4_LIVE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -28,6 +79,11 @@ export type Env = z.infer<typeof EnvSchema>;
 export function loadEnv(
   raw: NodeJS.ProcessEnv = process.env,
 ): Env {
+  if (raw.L2_DATABASE_URL) {
+    throw new Error(
+      "L2_DATABASE_URL is forbidden in L6 — use L2_BASE_URL + L2_SERVICE_KEY only",
+    );
+  }
   const parsed = EnvSchema.safeParse(raw);
   if (!parsed.success) {
     const detail = parsed.error.issues

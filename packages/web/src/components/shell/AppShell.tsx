@@ -1,27 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ConnectionStatus, NavKey, Role } from "@/lib/types";
-import { GhostButton, PrimaryButton } from "@/components/ui/primitives";
+import {
+  composeNav,
+  mobileDock,
+  readPins,
+  togglePin,
+  writePins,
+} from "@/lib/navigation";
+import { GhostButton, PrimaryButton, Sheet } from "@/components/ui/primitives";
 import { ContextualAnalyst } from "@/components/analyst/ContextualAnalyst";
+import { WebVitalsReporter } from "@/components/telemetry/WebVitalsReporter";
 
-const PRIMARY: Array<{ key: NavKey; href: string; label: string }> = [
-  { key: "today", href: "/", label: "Today" },
-  { key: "alarms", href: "/alarms", label: "Alarms" },
-  { key: "prescriptions", href: "/prescriptions", label: "Prescriptions" },
-  { key: "evidence", href: "/evidence", label: "Evidence" },
-  { key: "analyst", href: "/analyst", label: "Analyst" },
-  { key: "reports", href: "/reports", label: "Reports" },
-];
-
-const REVEAL: Array<{ key: NavKey; href: string; label: string }> = [
-  { key: "energy", href: "/energy", label: "Energy" },
-  { key: "equipment", href: "/equipment", label: "Equipment" },
-  { key: "intensity", href: "/intensity", label: "Intensity / CO₂" },
-  { key: "integrations", href: "/settings/integrations", label: "Integrations" },
-  { key: "admin", href: "/settings/admin", label: "Admin" },
-];
+function sseMeta(connection: ConnectionStatus): {
+  label: string;
+  live: boolean;
+  banner: string | null;
+} {
+  if (connection.sse === "live") {
+    return { label: "Live", live: true, banner: null };
+  }
+  if (connection.sse === "reconnecting") {
+    return {
+      label: "Reconnecting",
+      live: false,
+      banner:
+        "Live updates paused — reconnecting. Actions still work; lists may be stale.",
+    };
+  }
+  return {
+    label: "Offline",
+    live: false,
+    banner:
+      "Live updates offline. Actions still work; lists may be stale until the stream returns.",
+  };
+}
 
 export function AppShell({
   active,
@@ -40,153 +55,223 @@ export function AppShell({
   connection: ConnectionStatus;
   screenTitle: string;
   contextSummary: string[];
-  focusEntity?: { type: "alarm" | "prescription" | "asset" | "ledger_entry"; id: string };
+  focusEntity?: {
+    type: "alarm" | "prescription" | "asset" | "ledger_entry";
+    id: string;
+  };
   criticalAlarmCount: number;
   children: React.ReactNode;
 }) {
   const [revealed, setRevealed] = useState(false);
   const [analystOpen, setAnalystOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [pins, setPins] = useState<NavKey[]>([]);
+  const askAnalystRef = useRef<HTMLSpanElement>(null);
 
-  const sseLabel = useMemo(() => {
-    if (connection.sse === "live") return "Live";
-    if (connection.sse === "reconnecting") return "Reconnecting";
-    return "Offline";
-  }, [connection.sse]);
+  useEffect(() => {
+    setPins(readPins(typeof window !== "undefined" ? window.localStorage : null));
+  }, []);
 
-  return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <header
-        style={{
-          background: "var(--forge-secondary)",
-          color: "#fff",
-          padding: "12px 20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
+  const { primary, reveal } = useMemo(() => composeNav(role, pins), [role, pins]);
+  const dock = useMemo(() => mobileDock(role, pins), [role, pins]);
+  const sse = useMemo(() => sseMeta(connection), [connection]);
+
+  function onTogglePin(key: NavKey) {
+    const next = togglePin(role, pins, key);
+    setPins(next);
+    writePins(typeof window !== "undefined" ? window.localStorage : null, next);
+  }
+
+  const navLinks = (items: typeof primary, revealStyle = false) =>
+    items.map((item) => (
+      <div
+        key={item.key}
+        style={{ display: "flex", alignItems: "center", gap: 4 }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <strong style={{ fontFamily: "var(--forge-font-display)", fontSize: 16 }}>
-            Stamped Energy
-          </strong>
-          <span style={{ opacity: 0.85, fontSize: 13 }}>{plantName}</span>
-          <span
-            aria-live="polite"
+        <Link
+          href={item.href}
+          aria-current={active === item.key ? "page" : undefined}
+          className={
+            revealStyle
+              ? "forge-shell__nav-link forge-shell__nav-link--reveal"
+              : "forge-shell__nav-link"
+          }
+          style={{ flex: 1 }}
+          onClick={() => setMobileNavOpen(false)}
+        >
+          <span>{item.label}</span>
+          {item.key === "alarms" && criticalAlarmCount > 0 ? (
+            <span className="tabular" aria-label={`${criticalAlarmCount} critical`}>
+              {criticalAlarmCount}
+            </span>
+          ) : null}
+        </Link>
+        {revealStyle ? (
+          <button
+            type="button"
+            aria-label={`Pin ${item.label} to primary nav`}
+            onClick={() => onTogglePin(item.key)}
             style={{
-              fontSize: 12,
-              padding: "4px 8px",
-              borderRadius: 999,
-              background:
-                connection.sse === "live"
-                  ? "rgba(0,102,107,0.35)"
-                  : "rgba(201,122,0,0.35)",
+              minHeight: 44,
+              minWidth: 44,
+              borderRadius: 8,
+              border: "1px solid var(--forge-outline-variant)",
+              background: "transparent",
+              color: "var(--forge-secondary)",
+              fontSize: 11,
+              fontWeight: 700,
             }}
           >
-            SSE {sseLabel}
+            Pin
+          </button>
+        ) : pins.includes(item.key) ? (
+          <button
+            type="button"
+            aria-label={`Unpin ${item.label}`}
+            onClick={() => onTogglePin(item.key)}
+            style={{
+              minHeight: 44,
+              minWidth: 44,
+              borderRadius: 8,
+              border: "1px solid var(--forge-outline-variant)",
+              background: "transparent",
+              color: "var(--forge-on-surface-variant)",
+              fontSize: 11,
+              fontWeight: 700,
+            }}
+          >
+            Unpin
+          </button>
+        ) : null}
+      </div>
+    ));
+
+  return (
+    <div className="forge-shell" data-breakpoint-desktop="900px">
+      <WebVitalsReporter plantId="plant_jaipur_01" role={role} />
+      <a className="forge-shell__skip" href="#forge-main">
+        Skip to main content
+      </a>
+
+      <header className="forge-shell__topbar">
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="forge-shell__menu-btn"
+            aria-label="Open navigation"
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen(true)}
+            style={{
+              minHeight: 48,
+              minWidth: 48,
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.35)",
+              color: "#fff",
+              background: "transparent",
+              fontWeight: 700,
+            }}
+          >
+            Menu
+          </button>
+          <strong className="forge-shell__brand">Stamped Energy</strong>
+          <span className="forge-shell__plant">{plantName}</span>
+          <span
+            aria-live="polite"
+            className={`forge-shell__sse ${sse.live ? "forge-shell__sse--live" : "forge-shell__sse--warn"}`}
+          >
+            SSE {sse.label}
           </span>
         </div>
-        <PrimaryButton onClick={() => setAnalystOpen(true)}>Ask Analyst</PrimaryButton>
+        <span ref={askAnalystRef} tabIndex={-1} style={{ display: "inline-flex" }}>
+          <PrimaryButton onClick={() => setAnalystOpen(true)}>Ask Analyst</PrimaryButton>
+        </span>
       </header>
 
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+      <div className="forge-shell__body">
         <nav
           aria-label="Primary"
-          style={{
-            width: 220,
-            flexShrink: 0,
-            background: "var(--forge-surface-lowest)",
-            borderRight: "1px solid var(--forge-outline-variant)",
-            padding: 12,
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-          }}
+          className="forge-shell__sidebar"
+          data-shell="desktop-nav"
         >
-          {PRIMARY.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              aria-current={active === item.key ? "page" : undefined}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 8,
-                fontWeight: active === item.key ? 700 : 500,
-                background: active === item.key ? "var(--forge-primary-dim)" : "transparent",
-                color:
-                  active === item.key ? "var(--forge-primary)" : "var(--forge-on-surface)",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <span>{item.label}</span>
-              {item.key === "alarms" && criticalAlarmCount > 0 ? (
-                <span className="tabular" aria-label={`${criticalAlarmCount} critical`}>
-                  {criticalAlarmCount}
-                </span>
-              ) : null}
-            </Link>
-          ))}
-
-          <GhostButton onClick={() => setRevealed((v) => !v)}>
-            {revealed ? "Hide tools" : "More tools"}
-          </GhostButton>
-
-          {revealed
-            ? REVEAL.map((item) => (
-                <Link
-                  key={item.key}
-                  href={item.href}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    fontSize: 13,
-                    color: "var(--forge-on-surface-variant)",
-                  }}
-                >
-                  {item.label}
-                </Link>
-              ))
-            : null}
-
-          <p style={{ marginTop: "auto", fontSize: 11, color: "var(--forge-on-surface-variant)" }}>
-            Role: {role.replace("_", " ")}
+          {navLinks(primary)}
+          {reveal.length > 0 ? (
+            <>
+              <GhostButton onClick={() => setRevealed((v) => !v)}>
+                {revealed ? "Hide tools" : "More tools"}
+              </GhostButton>
+              {revealed ? navLinks(reveal, true) : null}
+            </>
+          ) : null}
+          <p
+            style={{
+              marginTop: "auto",
+              fontSize: 11,
+              color: "var(--forge-on-surface-variant)",
+            }}
+          >
+            Role: {role.replaceAll("_", " ")}
           </p>
         </nav>
 
-        <main
-          style={{
-            flex: 1,
-            overflow: "auto",
-            padding: "20px 16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 20,
-          }}
-        >
-          {connection.sse !== "live" ? (
-            <div
-              role="status"
-              style={{
-                padding: "10px 14px",
-                borderRadius: 8,
-                background: "rgba(201,122,0,0.14)",
-                color: "var(--forge-warning)",
-                fontWeight: 600,
-                fontSize: 13,
-              }}
-            >
-              Live updates paused — {sseLabel.toLowerCase()}. Actions still work; lists may be stale.
+        <main id="forge-main" className="forge-shell__main" tabIndex={-1}>
+          {sse.banner ? (
+            <div role="status" className="forge-shell__banner">
+              {sse.banner}
             </div>
           ) : null}
           {children}
         </main>
       </div>
 
+      <nav aria-label="Mobile primary" className="forge-shell__dock" data-shell="mobile-dock">
+        {dock.map((item) => (
+          <Link
+            key={item.key}
+            href={item.href}
+            aria-current={active === item.key ? "page" : undefined}
+          >
+            {item.label}
+          </Link>
+        ))}
+        <button type="button" onClick={() => setMobileNavOpen(true)}>
+          More
+        </button>
+      </nav>
+
+      <Sheet
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        title="Navigate"
+      >
+        <nav aria-label="Mobile full" style={{ display: "grid", gap: 4 }}>
+          {navLinks(primary)}
+          {reveal.length > 0 ? (
+            <>
+              <p
+                style={{
+                  margin: "12px 0 4px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--forge-on-surface-variant)",
+                }}
+              >
+                More tools
+              </p>
+              {navLinks(reveal, true)}
+            </>
+          ) : null}
+          <p style={{ marginTop: 16, fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
+            Role: {role.replaceAll("_", " ")} · {plantName}
+          </p>
+        </nav>
+      </Sheet>
+
       <ContextualAnalyst
         open={analystOpen}
         onClose={() => setAnalystOpen(false)}
+        returnFocusRef={askAnalystRef}
         envelope={{
           orgId: "org_demo",
           plantId: "plant_jaipur_01",

@@ -5,11 +5,16 @@ import type { WorkerEnv } from "./config.js";
 export const QUEUES = {
   fixturePing: "l6.fixture.ping",
   reportsGenerate: "l6.reports.generate",
+  webhooksDeliver: "l6.webhooks.deliver",
 } as const;
 
 export type FixturePingJob = {
   pingId: string;
   note?: string;
+};
+
+export type ReportGenerateJob = {
+  reportJobId: string;
 };
 
 export async function createBoss(env: WorkerEnv): Promise<PgBoss> {
@@ -26,8 +31,10 @@ export async function startWorker(env: WorkerEnv): Promise<PgBoss> {
   await boss.start();
   await boss.createQueue(QUEUES.fixturePing);
   await boss.createQueue(QUEUES.reportsGenerate);
+  await boss.createQueue(QUEUES.webhooksDeliver);
 
-  const seen = new Set<string>();
+  const seenPings = new Set<string>();
+  const seenReports = new Set<string>();
 
   await boss.work<FixturePingJob>(
     QUEUES.fixturePing,
@@ -36,9 +43,22 @@ export async function startWorker(env: WorkerEnv): Promise<PgBoss> {
       for (const job of jobs) {
         const pingId = job.data.pingId;
         if (!pingId) throw new Error("fixture ping missing pingId");
-        // Idempotent: duplicate deliveries of the same pingId are no-ops.
-        if (seen.has(pingId)) continue;
-        seen.add(pingId);
+        if (seenPings.has(pingId)) continue;
+        seenPings.add(pingId);
+      }
+    },
+  );
+
+  await boss.work<ReportGenerateJob>(
+    QUEUES.reportsGenerate,
+    { batchSize: 1 },
+    async (jobs) => {
+      for (const job of jobs) {
+        const id = job.data.reportJobId;
+        if (!id) throw new Error("report generate missing reportJobId");
+        // Idempotent accept — API owns artifact mutation; worker proves delivery.
+        if (seenReports.has(id)) continue;
+        seenReports.add(id);
       }
     },
   );

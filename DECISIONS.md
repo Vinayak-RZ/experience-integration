@@ -249,3 +249,29 @@ operational product path.
 
 Enterprise integration (Phase H) remains in scope but is sequenced after the
 ops-first product. README and `/api/meta` advertise `public_api: false`.
+
+## DEC-011 — Single Jaipur Works demo fixture source
+
+**Status:** Accepted · **Date:** 2026-07-22
+
+### Context
+
+Dashboard demos need coherent plant data across Today, EMS, Rx, evidence,
+analytics, analyst, reports, and admin settings — without inventing live
+upstream reads.
+
+### Decision
+
+`packages/web/src/fixtures/demo.ts` is the sole Auto demo plant story. Screens
+import shared fixtures/helpers (`demoCriticalAlarmCount`, ledger/Rx sums,
+`assetsFixture`, etc.) rather than hard-coding divergent counts.
+
+### Alternatives
+
+- Per-page mock blobs: faster locally, breaks narrative consistency.
+- Seed Postgres for UI: heavier, still needs BFF Autopath.
+
+### Consequences
+
+Unit tests assert against derived fixture totals. Intensity demo ships
+production units so SEC calculates; Scope 1 stays `not_measured_by_stamped`.

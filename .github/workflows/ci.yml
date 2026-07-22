@@ -12,7 +12,7 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -63,7 +63,7 @@ jobs:
         run: pnpm contracts:upstream
 
       - name: Typecheck, test, build
-        run: pnpm validate
+        run: SKIP_E2E=1 pnpm validate
 
   postgres-integration:
     runs-on: ubuntu-latest
@@ -109,3 +109,70 @@ jobs:
 
       - name: Run integration tests
         run: pnpm test:integration
+
+      - name: BFF smoke
+        run: pnpm smoke:bff
+
+  browser-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    needs: quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web
+        run: pnpm --filter @stamped/l6-web build
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @stamped/l6-web exec playwright install --with-deps chromium
+
+      - name: Run Playwright E2E
+        run: pnpm --filter @stamped/l6-web test:e2e
+        env:
+          CI: "true"
+
+  infra:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: CDK stack assertions
+        run: pnpm --filter @stamped/l6-infra test

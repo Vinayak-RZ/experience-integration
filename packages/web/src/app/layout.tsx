@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "@/styles/tokens.css";
+import "@/components/shell/shell.css";
 
 export const metadata: Metadata = {
-  title: "Stamped L6 Reference",
-  description: "Non-canonical UI seed for stamped-l6",
+  title: "Stamped Energy",
+  description: "Ops-first plant control room — Stamped L6",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

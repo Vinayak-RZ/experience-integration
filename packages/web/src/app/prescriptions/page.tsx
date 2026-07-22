@@ -1,7 +1,15 @@
 import { PrescriptionQueue } from "@/components/prescriptions/PrescriptionQueue";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
-import { DEMO_PLANT, connectionFixture, prescriptionsFixture } from "@/fixtures/demo";
+import {
+  DEMO_PLANT,
+  connectionFixture,
+  demoCriticalAlarmCount,
+  demoNeedsReviewCount,
+  demoNeedsReviewInr,
+  prescriptionsFixture,
+} from "@/fixtures/demo";
+import { formatInr } from "@/lib/format";
 
 export default function PrescriptionsPage() {
   return (
@@ -11,9 +19,12 @@ export default function PrescriptionsPage() {
       role="supervisor"
       connection={connectionFixture}
       screenTitle="Prescription queue"
-      contextSummary={["₹-sorted triage", "Ops-confirmed badges"]}
-      focusEntity={{ type: "prescription", id: prescriptionsFixture[0].id }}
-      criticalAlarmCount={2}
+      contextSummary={[
+        `${demoNeedsReviewCount()} need review · ${formatInr(demoNeedsReviewInr())}/mo`,
+        "Ops-confirmed badges",
+      ]}
+      focusEntity={{ type: "prescription", id: prescriptionsFixture[0]!.id }}
+      criticalAlarmCount={demoCriticalAlarmCount()}
     >
       <PageHead eyebrow="Closure" title="Prescription queue" />
       <PrescriptionQueue initial={prescriptionsFixture} />

@@ -1,7 +1,12 @@
 import { AnalystWorkspace } from "@/components/analyst/AnalystWorkspace";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
-import { DEMO_PLANT, connectionFixture } from "@/fixtures/demo";
+import {
+  DEMO_PLANT,
+  connectionFixture,
+  demoCriticalAlarmCount,
+  investigationsFixture,
+} from "@/fixtures/demo";
 
 export default function AnalystPage() {
   return (
@@ -11,13 +16,13 @@ export default function AnalystPage() {
       role="energy_manager"
       connection={connectionFixture}
       screenTitle="Full analyst workspace"
-      contextSummary={["Mode B workspace", "Citations required"]}
-      criticalAlarmCount={2}
+      contextSummary={[
+        `${investigationsFixture.length} saved investigations`,
+        "Mode B · citations required",
+      ]}
+      criticalAlarmCount={demoCriticalAlarmCount()}
     >
-      <PageHead
-        eyebrow="Analyst · Mode B"
-        title="Investigation workspace"
-      />
+      <PageHead eyebrow="Analyst · Mode B" title="Investigation workspace" />
       <AnalystWorkspace />
     </AppShell>
   );
