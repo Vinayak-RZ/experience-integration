@@ -1,0 +1,32 @@
+{
+  "name": "@stamped/l6-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "L6 Fastify BFF — browser-facing product backend (not the public /v1 surface)",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node --import tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts",
+    "build": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "@fastify/sensible": "catalog:",
+    "@stamped/l6-contracts": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "fastify": "catalog:",
+    "pg": "catalog:",
+    "pino": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "drizzle-kit": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  }
+}
