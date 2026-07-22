@@ -11,7 +11,7 @@
     "dev": "pnpm --parallel --filter './packages/*' dev",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
-    "validate": "pnpm typecheck && pnpm test && pnpm build",
+    "validate": "bash ./scripts/validate.sh",
     "ci:local": "bash ./scripts/ci-local.sh",
     "contracts:check": "./external/scripts/contract-check.sh",
     "contracts:upstream": "node ./scripts/check-upstream-contracts.mjs",

@@ -2,11 +2,11 @@
 
 ## Current phase
 
-**Phase N — Hardening** (starting)
+**Cutover — AWS Mumbai pilot** (blocked)
 
-Phases 0–G Auto product surfaces are in place. Phase H public `/v1` remains
-deferred per Auto-not-API. Pilot cutover stays blocked on credentials and
-human approval.
+Phases 0–G Auto product + Phase N `validate.sh` gate are green. Phase H public
+`/v1` remains deferred. Pilot cutover needs credentials, upstream contracts,
+and human approval.
 
 ## Phase status
 
@@ -17,18 +17,19 @@ human approval.
 | B — Authentication and tenancy | Complete | Invite/login/plant-switch/RBAC matrix |
 | C — Forge UX system | Complete | Desktop/mobile shell and accessibility baseline |
 | D — Upstream and realtime | Complete | Adapter contracts and resumable SSE |
-| E — Operational control room | Complete* | Product flows shipped; Playwright E2E → Phase N |
+| E — Operational control room | Complete* | Product flows shipped; Playwright E2E open |
 | F — Analytics and analyst | Complete | Dense charts and confirmed analyst handoff |
 | G — Reports and sustainability | Complete† | HTML/CSV + approval UX; PDF/XLSX binary deferred |
 | H — Enterprise integration | Deferred (Auto) | Public API last; UX/ops first |
-| N — Hardening | In progress | Full validation and no high security findings |
+| N — Hardening | Complete‡ | `validate.sh` green; Playwright optional |
 | Cutover — AWS Mumbai pilot | Blocked | Credentials, upstream contracts, and human approval |
 
-\* Browser E2E matrix waits on Playwright.  
-† Print HTML + CSV shipped; Playwright PDF / ExcelJS XLSX deferred.
+\* Browser E2E matrix waits on Playwright (`VALIDATE_E2E=1`).  
+† Print HTML + CSV shipped; Playwright PDF / ExcelJS XLSX deferred.  
+‡ No open critical security findings on Auto path (see `docs/SECURITY_REVIEW.md`).
 
 ## Immediate next work
 
-1. Expand validation orchestrator / security review notes.
-2. Install Playwright for operational E2E (or document remaining gap).
-3. Runbooks + known-limits for Mumbai pilot readiness.
+1. Obtain Mumbai credentials + approve `cdk diff` / migrations (human).
+2. Optional: install Playwright and close S-06 before traffic.
+3. Smoke + rollback proof per `docs/runbooks/pilot-ops.md`.
