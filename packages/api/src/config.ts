@@ -46,6 +46,21 @@ const EnvSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+  /** L2 query API — never L2_DATABASE_URL. */
+  L2_BASE_URL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().url().default("http://127.0.0.1:8102"),
+  ),
+  L2_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
+  L2_SERVICE_KEY: z.string().optional(),
+  L2_FEATURE_LEDGER: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  L2_FEATURE_BASELINES: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -53,6 +68,11 @@ export type Env = z.infer<typeof EnvSchema>;
 export function loadEnv(
   raw: NodeJS.ProcessEnv = process.env,
 ): Env {
+  if (raw.L2_DATABASE_URL) {
+    throw new Error(
+      "L2_DATABASE_URL is forbidden in L6 — use L2_BASE_URL + L2_SERVICE_KEY only",
+    );
+  }
   const parsed = EnvSchema.safeParse(raw);
   if (!parsed.success) {
     const detail = parsed.error.issues
