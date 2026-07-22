@@ -35,8 +35,9 @@ git clone --recurse-submodules https://github.com/Vinayak-RZ/experience-integrat
 cd experience-integration
 # or after clone:
 git submodule update --init --recursive
-
-cd packages/web && npm install && npm test && npm run typecheck
+corepack enable
+pnpm install
+pnpm validate
 ```
 
 Agents / CI must run `git submodule update --init` before build. Contracts: `./external/scripts/contract-check.sh`.
