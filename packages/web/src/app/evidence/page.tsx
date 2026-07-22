@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead, Panel } from "@/components/ui/primitives";
 import { LoadDial } from "@/components/charts/LoadDial";
+import { EvidenceTrend } from "@/components/charts/EvidenceTrend";
 import { DEMO_PLANT, connectionFixture } from "@/fixtures/demo";
 
 export default function EvidencePage() {
@@ -11,7 +12,7 @@ export default function EvidencePage() {
       role="supervisor"
       connection={connectionFixture}
       screenTitle="Evidence explorer"
-      contextSummary={["Pre-scoped charts", "Baseline bands in production via ECharts"]}
+      contextSummary={["Pre-scoped charts", "Baseline bands via ECharts"]}
       criticalAlarmCount={2}
     >
       <PageHead eyebrow="Proof" title="Evidence explorer" />
@@ -20,10 +21,11 @@ export default function EvidencePage() {
         <LoadDial loadPct={72} label="Mill 1" />
         <LoadDial loadPct={54} label="Compressor 2" />
         <p style={{ flex: "1 1 240px", fontSize: 13, color: "var(--forge-on-surface-variant)" }}>
-          Production L6 mounts ECharts trend slices here with L2 baseline bands. This seed shows
-          load dials adapted from the demo for asset state at a glance.
+          Dense trends use canvas ECharts with min-max + LTTB sampling and a data-table
+          alternative. Load dials stay SVG for at-a-glance asset state.
         </p>
       </Panel>
+      <EvidenceTrend />
     </AppShell>
   );
 }

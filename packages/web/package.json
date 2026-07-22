@@ -2,7 +2,7 @@
   "name": "@stamped/l6-web",
   "version": "0.1.0",
   "private": true,
-  "description": "Experience & Integration (L6) web \u2014 ops-first control room (seeded from stamped-external)",
+  "description": "Experience & Integration (L6) web — ops-first control room (seeded from stamped-external)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,6 +11,7 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
+    "echarts": "^6.1.0",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
