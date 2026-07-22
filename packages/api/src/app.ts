@@ -6,6 +6,8 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import sensible from "@fastify/sensible";
 import { registerAdminRoutes } from "./admin/routes.js";
+import { registerAlarmRoutes } from "./alarms/routes.js";
+import type { AlarmStore } from "./alarms/service.js";
 import type { Auth } from "./auth/index.js";
 import { registerAuthRoutes } from "./auth/routes.js";
 import { type Env, loadEnv } from "./config.js";
@@ -14,6 +16,7 @@ import { registerEventRoutes } from "./events/routes.js";
 import type { Mailer } from "./mail/mailer.js";
 import { registerPlantRoutes } from "./plants/routes.js";
 import { problemHandler } from "./problems.js";
+import type { L5WorkflowClient } from "./upstream/l5/client.js";
 import type pg from "pg";
 
 export type AppDeps = {
@@ -23,6 +26,8 @@ export type AppDeps = {
   mailer?: Mailer;
   db?: Db;
   pool?: pg.Pool;
+  l5?: L5WorkflowClient | null;
+  alarmFixture?: AlarmStore;
 };
 
 export async function buildApp(
@@ -129,6 +134,12 @@ export async function buildApp(
   if (opts.auth && opts.db) {
     await registerAdminRoutes(app, opts.auth, opts.db);
     await registerPlantRoutes(app, opts.auth, opts.db);
+    await registerAlarmRoutes(app, {
+      auth: opts.auth,
+      db: opts.db,
+      l5: opts.l5,
+      fixture: opts.alarmFixture,
+    });
   }
   if (opts.auth && opts.db && opts.pool) {
     await registerEventRoutes(app, opts.auth, opts.db, opts.pool);
