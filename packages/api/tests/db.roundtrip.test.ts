@@ -4,7 +4,13 @@ import { describe, it } from "node:test";
 import { eq } from "drizzle-orm";
 import { createDb, createPool, pingDatabase } from "../src/db/client.js";
 import { runMigrations } from "../src/db/migrate.js";
-import { auditEvents, organizations, plants, userPreferences } from "../src/db/schema.js";
+import {
+  auditEvents,
+  organizations,
+  plants,
+  userPreferences,
+} from "../src/db/schema.js";
+import { resetDatabase } from "./helpers/db.js";
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -15,6 +21,7 @@ describe("PostgreSQL foundation", () => {
       return;
     }
 
+    await resetDatabase(databaseUrl);
     await runMigrations(databaseUrl);
     const pool = createPool(databaseUrl);
     assert.equal(await pingDatabase(pool), true);

@@ -2,7 +2,10 @@ import Fastify, {
   type FastifyInstance,
   type FastifyServerOptions,
 } from "fastify";
+import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
+import type { Auth } from "./auth/index.js";
+import { registerAuthRoutes } from "./auth/routes.js";
 import { type Env, loadEnv } from "./config.js";
 import { problemHandler } from "./problems.js";
 
@@ -10,6 +13,8 @@ export type AppDeps = {
   env?: Env;
   /** Optional readiness probe — returns true when dependencies are healthy. */
   checkReady?: () => Promise<boolean> | boolean;
+  /** Better Auth instance — required for /api/auth and /api/me. */
+  auth?: Auth;
 };
 
 export async function buildApp(
@@ -36,6 +41,12 @@ export async function buildApp(
   });
 
   await app.register(sensible);
+  await app.register(cors, {
+    origin: env.WEB_ORIGIN,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Request-Id"],
+  });
 
   app.setErrorHandler(problemHandler);
   app.setNotFoundHandler(async (request, reply) => {
@@ -78,13 +89,17 @@ export async function buildApp(
     return { status: "ready", service: "l6-api" };
   });
 
-  // Product BFF routes land in later phases. Public /v1 is Phase H — deferred
-  // while Auto prioritizes Forge UX and operational surfaces.
+  // Product BFF routes. Public /v1 is Phase H — deferred (DEC-010).
   app.get("/api/meta", async () => ({
     name: "stamped-l6-bff",
     surface: "product",
     public_api: false,
+    auth: Boolean(opts.auth),
   }));
+
+  if (opts.auth) {
+    await registerAuthRoutes(app, opts.auth);
+  }
 
   return app;
 }

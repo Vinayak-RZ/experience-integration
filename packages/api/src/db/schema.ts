@@ -6,8 +6,17 @@ import {
   jsonb,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { authSchema } from "./auth-schema.js";
 
-/** Organization (tenant root). Auth users land in Phase B. */
+export {
+  user,
+  session,
+  account,
+  verification,
+  authSchema,
+} from "./auth-schema.js";
+
+/** Organization (tenant root). */
 export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(),
   slug: text("slug").notNull(),
@@ -82,6 +91,7 @@ export const auditEvents = pgTable("audit_events", {
 });
 
 export const schema = {
+  ...authSchema,
   organizations,
   plants,
   userPreferences,

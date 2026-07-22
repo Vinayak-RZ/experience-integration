@@ -15,6 +15,12 @@ const EnvSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+  BETTER_AUTH_SECRET: z
+    .string()
+    .min(32)
+    .default("dev-only-stamped-l6-auth-secret-change-me"),
+  BETTER_AUTH_URL: z.string().url().default("http://localhost:3001"),
+  WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
