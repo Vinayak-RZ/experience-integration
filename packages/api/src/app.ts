@@ -13,6 +13,7 @@ import { registerAuthRoutes } from "./auth/routes.js";
 import { type Env, loadEnv } from "./config.js";
 import type { Db } from "./db/client.js";
 import { registerEventRoutes } from "./events/routes.js";
+import { registerExportRoutes } from "./exports/routes.js";
 import type { Mailer } from "./mail/mailer.js";
 import { registerPlantRoutes } from "./plants/routes.js";
 import { problemHandler } from "./problems.js";
@@ -140,6 +141,7 @@ export async function buildApp(
       l5: opts.l5,
       fixture: opts.alarmFixture,
     });
+    await registerExportRoutes(app, { auth: opts.auth, db: opts.db });
   }
   if (opts.auth && opts.db && opts.pool) {
     await registerEventRoutes(app, opts.auth, opts.db, opts.pool);
