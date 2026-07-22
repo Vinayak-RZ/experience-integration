@@ -42,7 +42,7 @@ export function TodayBoard({
                 >
                   {s.label}
                 </p>
-                <StatusChip tone={s.tone === "good" ? "good" : s.tone}>{s.tone}</StatusChip>
+                <StatusChip tone={s.tone === "good" ? "good" : s.tone} />
               </div>
               <p
                 className="tabular"
