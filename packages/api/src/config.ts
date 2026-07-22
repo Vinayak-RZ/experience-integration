@@ -21,6 +21,11 @@ const EnvSchema = z.object({
     .default("dev-only-stamped-l6-auth-secret-change-me"),
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3001"),
   WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_FROM: z.string().email().default("noreply@stamped.local"),
+  /** Password reset / invite token lifetime (seconds). */
+  AUTH_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

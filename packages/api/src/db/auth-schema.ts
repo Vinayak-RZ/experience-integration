@@ -5,7 +5,7 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
-/** Better Auth core tables — generated shape, owned by L6 BFF. */
+/** Better Auth core + admin plugin fields. */
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -15,6 +15,11 @@ export const user = pgTable("user", {
   image: text("image"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  // admin plugin
+  role: text("role").default("user"),
+  banned: boolean("banned").default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires", { withTimezone: true }),
 });
 
 export const session = pgTable("session", {
@@ -28,6 +33,7 @@ export const session = pgTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  impersonatedBy: text("impersonated_by"),
 });
 
 export const account = pgTable("account", {

@@ -2,6 +2,7 @@ import { createAuth } from "./auth/index.js";
 import { startServer } from "./app.js";
 import { loadEnv } from "./config.js";
 import { createDb, createPool, pingDatabase } from "./db/client.js";
+import { createMailer } from "./mail/mailer.js";
 
 const env = loadEnv();
 
@@ -11,11 +12,17 @@ if (!env.DATABASE_URL) {
 
 const pool = createPool(env.DATABASE_URL);
 const db = createDb(pool);
-const auth = createAuth(db, env);
+const mailer = createMailer({
+  smtpHost: env.SMTP_HOST,
+  smtpPort: env.SMTP_PORT,
+  from: env.SMTP_FROM,
+});
+const auth = createAuth(db, env, mailer);
 
 const app = await startServer({
   env,
   auth,
+  mailer,
   checkReady: () => pingDatabase(pool),
 });
 

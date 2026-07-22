@@ -7,6 +7,7 @@ import sensible from "@fastify/sensible";
 import type { Auth } from "./auth/index.js";
 import { registerAuthRoutes } from "./auth/routes.js";
 import { type Env, loadEnv } from "./config.js";
+import type { Mailer } from "./mail/mailer.js";
 import { problemHandler } from "./problems.js";
 
 export type AppDeps = {
@@ -15,6 +16,7 @@ export type AppDeps = {
   checkReady?: () => Promise<boolean> | boolean;
   /** Better Auth instance — required for /api/auth and /api/me. */
   auth?: Auth;
+  mailer?: Mailer;
 };
 
 export async function buildApp(
@@ -45,7 +47,12 @@ export async function buildApp(
     origin: env.WEB_ORIGIN,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Request-Id"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "X-Request-Id",
+    ],
   });
 
   app.setErrorHandler(problemHandler);
@@ -89,7 +96,6 @@ export async function buildApp(
     return { status: "ready", service: "l6-api" };
   });
 
-  // Product BFF routes. Public /v1 is Phase H — deferred (DEC-010).
   app.get("/api/meta", async () => ({
     name: "stamped-l6-bff",
     surface: "product",
@@ -97,8 +103,8 @@ export async function buildApp(
     auth: Boolean(opts.auth),
   }));
 
-  if (opts.auth) {
-    await registerAuthRoutes(app, opts.auth);
+  if (opts.auth && opts.mailer) {
+    await registerAuthRoutes(app, opts.auth, opts.mailer, env);
   }
 
   return app;
