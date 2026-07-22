@@ -3,6 +3,7 @@ import Fastify, {
   type FastifyServerOptions,
 } from "fastify";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import sensible from "@fastify/sensible";
 import { registerAdminRoutes } from "./admin/routes.js";
 import type { Auth } from "./auth/index.js";
@@ -31,7 +32,13 @@ export async function buildApp(
       : {
           level: env.LOG_LEVEL,
           base: { service: "l6-api" },
-          redact: ["req.headers.authorization", "req.headers.cookie"],
+          redact: [
+            "req.headers.authorization",
+            "req.headers.cookie",
+            "password",
+            "newPassword",
+            "token",
+          ],
         };
 
   const app = Fastify({
@@ -55,6 +62,13 @@ export async function buildApp(
       "X-Requested-With",
       "X-Request-Id",
     ],
+  });
+
+  await app.register(rateLimit, {
+    global: true,
+    max: env.NODE_ENV === "test" ? 10_000 : 300,
+    timeWindow: "1 minute",
+    ban: 0,
   });
 
   app.setErrorHandler(problemHandler);

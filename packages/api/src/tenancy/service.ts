@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { RoleSchema, type Role } from "@stamped/l6-contracts";
 import { requirePermission } from "../authz/index.js";
 import type { Db } from "../db/client.js";
+import { redactSensitive } from "../security/redact.js";
 import {
   memberships,
   organizations,
@@ -294,7 +295,10 @@ export async function writeAudit(
     action: input.action,
     resourceType: input.resourceType,
     resourceId: input.resourceId ?? null,
-    metadata: input.metadata ?? {},
+    metadata: (redactSensitive(input.metadata ?? {}) ?? {}) as Record<
+      string,
+      unknown
+    >,
   });
 }
 

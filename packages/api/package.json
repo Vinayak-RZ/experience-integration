@@ -16,6 +16,7 @@
   "dependencies": {
     "@fastify/cookie": "11.0.2",
     "@fastify/cors": "11.2.0",
+    "@fastify/rate-limit": "catalog:",
     "@fastify/sensible": "catalog:",
     "@stamped/l6-contracts": "workspace:*",
     "better-auth": "1.6.23",
