@@ -13,6 +13,7 @@ export {
   session,
   account,
   verification,
+  twoFactor,
   authSchema,
 } from "./auth-schema.js";
 
