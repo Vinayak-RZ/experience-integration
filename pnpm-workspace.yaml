@@ -38,5 +38,6 @@ minimumReleaseAgeExclude:
   - next@16.2.11
   - react-dom@19.2.8
   - react@19.2.8
+  - pg-boss@12.26.2
 
 strictPeerDependencies: true

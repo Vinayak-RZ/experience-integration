@@ -1,0 +1,51 @@
+import { PgBoss } from "pg-boss";
+import type { WorkerEnv } from "./config.js";
+
+/** Queue names — handlers stay idempotent because retries re-deliver. */
+export const QUEUES = {
+  fixturePing: "l6.fixture.ping",
+  reportsGenerate: "l6.reports.generate",
+} as const;
+
+export type FixturePingJob = {
+  pingId: string;
+  note?: string;
+};
+
+export async function createBoss(env: WorkerEnv): Promise<PgBoss> {
+  const boss = new PgBoss({
+    connectionString: env.DATABASE_URL,
+    // ponytail: single schema for local/CI; split schemas if multi-tenant isolation needs it
+    schema: "pgboss",
+  });
+  return boss;
+}
+
+export async function startWorker(env: WorkerEnv): Promise<PgBoss> {
+  const boss = await createBoss(env);
+  await boss.start();
+  await boss.createQueue(QUEUES.fixturePing);
+  await boss.createQueue(QUEUES.reportsGenerate);
+
+  const seen = new Set<string>();
+
+  await boss.work<FixturePingJob>(
+    QUEUES.fixturePing,
+    { batchSize: 1 },
+    async (jobs) => {
+      for (const job of jobs) {
+        const pingId = job.data.pingId;
+        if (!pingId) throw new Error("fixture ping missing pingId");
+        // Idempotent: duplicate deliveries of the same pingId are no-ops.
+        if (seen.has(pingId)) continue;
+        seen.add(pingId);
+      }
+    },
+  );
+
+  return boss;
+}
+
+export async function stopWorker(boss: PgBoss): Promise<void> {
+  await boss.stop({ graceful: true, timeout: 5_000 });
+}
