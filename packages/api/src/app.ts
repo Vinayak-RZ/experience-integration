@@ -10,9 +10,11 @@ import type { Auth } from "./auth/index.js";
 import { registerAuthRoutes } from "./auth/routes.js";
 import { type Env, loadEnv } from "./config.js";
 import type { Db } from "./db/client.js";
+import { registerEventRoutes } from "./events/routes.js";
 import type { Mailer } from "./mail/mailer.js";
 import { registerPlantRoutes } from "./plants/routes.js";
 import { problemHandler } from "./problems.js";
+import type pg from "pg";
 
 export type AppDeps = {
   env?: Env;
@@ -20,6 +22,7 @@ export type AppDeps = {
   auth?: Auth;
   mailer?: Mailer;
   db?: Db;
+  pool?: pg.Pool;
 };
 
 export async function buildApp(
@@ -61,6 +64,7 @@ export async function buildApp(
       "Authorization",
       "X-Requested-With",
       "X-Request-Id",
+      "Last-Event-ID",
     ],
   });
 
@@ -125,6 +129,9 @@ export async function buildApp(
   if (opts.auth && opts.db) {
     await registerAdminRoutes(app, opts.auth, opts.db);
     await registerPlantRoutes(app, opts.auth, opts.db);
+  }
+  if (opts.auth && opts.db && opts.pool) {
+    await registerEventRoutes(app, opts.auth, opts.db, opts.pool);
   }
 
   return app;

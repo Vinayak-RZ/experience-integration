@@ -6,6 +6,7 @@ import {
   jsonb,
   uniqueIndex,
   index,
+  bigserial,
 } from "drizzle-orm/pg-core";
 import { authSchema } from "./auth-schema.js";
 
@@ -160,7 +161,7 @@ export const l5EventCursors = pgTable(
   ],
 );
 
-/** Append-only L5 event mirror — dedupe_key unique. SSE resumes via id. */
+/** Append-only L5 event mirror — dedupe_key unique. SSE resumes via id/seq. */
 export const l5Events = pgTable(
   "l5_events",
   {
@@ -170,6 +171,8 @@ export const l5Events = pgTable(
     eventId: text("event_id").notNull(),
     dedupeKey: text("dedupe_key").notNull(),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    /** Monotonic order for Last-Event-ID resume. */
+    seq: bigserial("seq", { mode: "number" }).notNull(),
     payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
     ingestedAt: timestamp("ingested_at", { withTimezone: true })
       .defaultNow()
@@ -178,10 +181,10 @@ export const l5Events = pgTable(
   (t) => [
     uniqueIndex("l5_events_dedupe_uidx").on(t.dedupeKey),
     uniqueIndex("l5_events_event_id_uidx").on(t.eventId),
-    index("l5_events_plant_ingested_idx").on(
+    index("l5_events_plant_seq_idx").on(
       t.orgExternalId,
       t.plantExternalId,
-      t.ingestedAt,
+      t.seq,
     ),
   ],
 );

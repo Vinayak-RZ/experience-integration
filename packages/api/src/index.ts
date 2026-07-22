@@ -24,6 +24,7 @@ const app = await startServer({
   auth,
   mailer,
   db,
+  pool,
   checkReady: () => pingDatabase(pool),
 });
 

@@ -15,6 +15,7 @@ CREATE TABLE "l5_events" (
 	"event_id" text NOT NULL,
 	"dedupe_key" text NOT NULL,
 	"occurred_at" timestamp with time zone NOT NULL,
+	"seq" bigserial NOT NULL,
 	"payload" jsonb NOT NULL,
 	"ingested_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -23,4 +24,4 @@ CREATE UNIQUE INDEX "l5_events_dedupe_uidx" ON "l5_events" USING btree ("dedupe_
 --> statement-breakpoint
 CREATE UNIQUE INDEX "l5_events_event_id_uidx" ON "l5_events" USING btree ("event_id");
 --> statement-breakpoint
-CREATE INDEX "l5_events_plant_ingested_idx" ON "l5_events" USING btree ("org_external_id","plant_external_id","ingested_at");
+CREATE INDEX "l5_events_plant_seq_idx" ON "l5_events" USING btree ("org_external_id","plant_external_id","seq");

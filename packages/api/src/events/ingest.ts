@@ -5,6 +5,7 @@ import type { WorkflowEvent } from "@stamped/l6-contracts";
 import { createDb } from "../db/client.js";
 import { l5EventCursors, l5Events } from "../db/schema.js";
 import type { L5WorkflowClient } from "../upstream/l5/client.js";
+import { publishEventNotify } from "./sse.js";
 
 export type IngestResult = {
   acquired: boolean;
@@ -79,7 +80,7 @@ export async function ingestL5Events(
         if (items.length === 0) break;
 
         for (const event of items) {
-          const result = await appendEvent(db, event);
+          const result = await appendEvent(db, event, client);
           if (result === "inserted") inserted += 1;
           else skipped += 1;
           cursor = event.event_id;
@@ -117,16 +118,27 @@ export async function ingestL5Events(
 export async function appendEvent(
   db: ReturnType<typeof createDb>,
   event: WorkflowEvent,
+  notifyClient?: pg.PoolClient | pg.Pool,
 ): Promise<"inserted" | "duplicate"> {
   try {
-    await db.insert(l5Events).values({
-      orgExternalId: event.org_id,
-      plantExternalId: event.plant_id,
-      eventId: event.event_id,
-      dedupeKey: event.dedupe_key,
-      occurredAt: new Date(event.occurred_at),
-      payload: event as unknown as Record<string, unknown>,
-    });
+    const [row] = await db
+      .insert(l5Events)
+      .values({
+        orgExternalId: event.org_id,
+        plantExternalId: event.plant_id,
+        eventId: event.event_id,
+        dedupeKey: event.dedupe_key,
+        occurredAt: new Date(event.occurred_at),
+        payload: event as unknown as Record<string, unknown>,
+      })
+      .returning({ id: l5Events.id });
+    if (notifyClient && row) {
+      await publishEventNotify(notifyClient, {
+        orgExternalId: event.org_id,
+        plantExternalId: event.plant_id,
+        id: row.id,
+      });
+    }
     return "inserted";
   } catch (err) {
     const cause = (err as { cause?: { code?: string; message?: string } }).cause;
