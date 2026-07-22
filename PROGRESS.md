@@ -37,3 +37,8 @@ Jaipur Works Auto demo is thorough across all Forge screens via
 `packages/web/src/fixtures/demo.ts` (assets, alarms, Rx, ledger, members, API
 keys, webhooks, report jobs, investigations, energy KPIs). Today tiles derive
 from the same helpers so shell banners stay consistent.
+
+## Documentation (2026-07-22)
+
+Root [`README.md`](README.md) is the extensive onboarding / reference manual
+(vision, architecture, config, route catalogs, demo plant, testing, CI, cookbook).
