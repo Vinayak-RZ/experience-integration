@@ -6,9 +6,9 @@ contract in `IMPLEMENTATION_PLAN.md`.
 ## Phase 1 — Setup
 
 - [x] T001 Establish lived authority in `PROJECT_OVERVIEW.md`, `PROGRESS.md`, `DECISIONS.md`, and `IMPLEMENTATION_PLAN.md`
-- [ ] T002 Create and validate specification artifacts in `.specify/specs/l6-completion/`
-- [ ] T003 [P] Define product and Forge design context in `PRODUCT.md` and `DESIGN.md`
-- [ ] T004 [P] Publish sibling contract prompts in `docs/integration/UPSTREAM_AGENT_PROMPTS.md`
+- [x] T002 Create and validate specification artifacts in `.specify/specs/l6-completion/`
+- [x] T003 [P] Define product and Forge design context in `PRODUCT.md` and `DESIGN.md`
+- [x] T004 [P] Publish sibling contract prompts in `docs/integration/UPSTREAM_AGENT_PROMPTS.md`
 
 ## Phase 2 — Foundational
 

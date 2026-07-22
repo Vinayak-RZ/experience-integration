@@ -2,16 +2,17 @@
 
 ## Current phase
 
-**Phase 0 — Authority and specification**
+**Phase A — Workspace and foundation**
 
-The approved master plan is being converted into lived project, specification,
-design, and upstream-integration artifacts.
+Phase 0 authority, specification, design, and upstream prompts are complete.
+The next work establishes the pnpm workspace, contracts, BFF, PostgreSQL,
+worker, CI, and local runtime.
 
 ## Phase status
 
 | Phase | Status | Exit gate |
 |-------|--------|-----------|
-| 0 — Authority and specification | In progress | Approved artifacts and explicit upstream blockers |
+| 0 — Authority and specification | Complete | Approved artifacts and explicit upstream blockers |
 | A — Workspace and foundation | Pending | Frozen install, migrations, contracts, tests, builds |
 | B — Authentication and tenancy | Pending | Invite/login/plant-switch/RBAC matrix |
 | C — Forge UX system | Pending | Desktop/mobile shell and accessibility baseline |
@@ -34,6 +35,11 @@ design, and upstream-integration artifacts.
 - Confirmed Redis remains outside P0–P2; PostgreSQL/pg-boss is the selected
   replacement.
 - Confirmed local admin-managed auth plus Entra and L6-owned RBAC.
+- Established root project authority, decisions, progress, product, and design
+  context.
+- Scaffolded Spec Kit and validated 27 requirements, 10 success criteria, and
+  66 dependency-ordered tasks with no unresolved clarification.
+- Published ready-to-paste L5 alarm-action and L2 ledger/baseline agent prompts.
 
 ## Active blockers
 
@@ -56,10 +62,10 @@ adapters and CDK synthesis can proceed; real cutover requires human approval.
 
 ## Immediate next work
 
-1. Complete Spec Kit requirement artifacts and consistency analysis.
-2. Freeze PRODUCT/DESIGN context against Forge Industrial.
-3. Publish ready-to-paste L5/L2 agent prompts.
-4. Begin Phase A pnpm workspace and platform foundation.
+1. Migrate the existing web seed to a pnpm workspace.
+2. Add CI and the shared L6 contract package.
+3. Scaffold Fastify, PostgreSQL/Drizzle, and pg-boss.
+4. Add the local compose profile and run the Phase A gate.
 
 ## Deferred by scope
 
