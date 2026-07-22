@@ -63,10 +63,9 @@ adapters and CDK synthesis can proceed; real cutover requires human approval.
 
 ## Immediate next work
 
-1. Integrate Better Auth local email/password (no public signup).
-2. Organizations, plants, memberships, RBAC matrix.
-3. Admin invites + Mailpit; optional TOTP; plant switcher.
-4. Then Phase C Forge UX system (tokens, shell, navigation).
+1. Enforce service-layer RBAC permission matrix (seven roles).
+2. Admin membership UI + plant switcher persistence.
+3. Harden auth boundaries, then Phase C Forge UX.
 
 ## Deferred by scope
 

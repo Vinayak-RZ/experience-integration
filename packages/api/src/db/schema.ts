@@ -91,10 +91,60 @@ export const auditEvents = pgTable("audit_events", {
     .notNull(),
 });
 
+/**
+ * L6 product membership — plant-scoped RBAC role (ADR-023).
+ * Distinct from Better Auth plugin `user.role` (admin|user).
+ */
+export const memberships = pgTable(
+  "memberships",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id").notNull(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    role: text("role").notNull(),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("memberships_user_org_uidx").on(t.userId, t.orgId),
+  ],
+);
+
+export const plantMemberships = pgTable(
+  "plant_memberships",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    membershipId: uuid("membership_id")
+      .notNull()
+      .references(() => memberships.id, { onDelete: "cascade" }),
+    plantId: uuid("plant_id")
+      .notNull()
+      .references(() => plants.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("plant_memberships_member_plant_uidx").on(
+      t.membershipId,
+      t.plantId,
+    ),
+  ],
+);
+
 export const schema = {
   ...authSchema,
   organizations,
   plants,
   userPreferences,
   auditEvents,
+  memberships,
+  plantMemberships,
 };
