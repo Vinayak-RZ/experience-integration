@@ -15,7 +15,8 @@
     "ci:local": "bash ./scripts/ci-local.sh",
     "contracts:check": "./external/scripts/contract-check.sh",
     "contracts:upstream": "node ./scripts/check-upstream-contracts.mjs",
-    "test:integration": "pnpm --filter @stamped/l6-api --filter @stamped/l6-worker test",
+    "test:integration": "pnpm --filter @stamped/l6-api --filter @stamped/l6-worker --filter @stamped/l6-infra test",
+    "smoke:bff": "tsx scripts/smoke-bff.ts",
     "compose:smoke": "bash ./scripts/compose-smoke.sh"
   }
 }

@@ -113,9 +113,7 @@ body {
   font-family: var(--forge-font-body);
   font-size: var(--forge-size-body);
   line-height: var(--forge-leading-body);
-  background:
-    radial-gradient(1200px 480px at 10% -10%, rgba(204, 234, 214, 0.35), transparent 55%),
-    var(--forge-surface);
+  background: var(--forge-surface);
   color: var(--forge-on-surface);
   -webkit-font-smoothing: antialiased;
 }

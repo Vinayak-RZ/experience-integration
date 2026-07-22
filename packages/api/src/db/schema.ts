@@ -8,6 +8,7 @@ import {
   index,
   bigserial,
   integer,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { authSchema } from "./auth-schema.js";
 
@@ -226,6 +227,127 @@ export const reportJobs = pgTable(
   ],
 );
 
+/** Org-scoped public API keys — store hash only. */
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    prefix: text("prefix").notNull(),
+    secretHash: text("secret_hash").notNull(),
+    scopes: jsonb("scopes").$type<string[]>().notNull().default([]),
+    createdBy: text("created_by"),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("api_keys_prefix_uidx").on(t.prefix),
+    index("api_keys_org_idx").on(t.orgId),
+  ],
+);
+
+export const webhookEndpoints = pgTable(
+  "webhook_endpoints",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    secret: text("secret").notNull(),
+    eventFilters: jsonb("event_filters").$type<string[]>().notNull().default(["*"]),
+    enabled: boolean("enabled").notNull().default(true),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [index("webhook_endpoints_org_idx").on(t.orgId)],
+);
+
+export const webhookDeliveries = pgTable(
+  "webhook_deliveries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    endpointId: uuid("endpoint_id")
+      .notNull()
+      .references(() => webhookEndpoints.id, { onDelete: "cascade" }),
+    eventId: text("event_id").notNull(),
+    eventType: text("event_type").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    status: text("status").notNull().default("pending"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    lastError: text("last_error"),
+    responseStatus: integer("response_status"),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true }),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("webhook_deliveries_endpoint_idx").on(t.endpointId, t.status),
+    uniqueIndex("webhook_deliveries_event_endpoint_uidx").on(
+      t.endpointId,
+      t.eventId,
+    ),
+  ],
+);
+
+export const powerbiCheckpoints = pgTable(
+  "powerbi_checkpoints",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    plantId: uuid("plant_id")
+      .notNull()
+      .references(() => plants.id, { onDelete: "cascade" }),
+    datasetId: text("dataset_id").notNull(),
+    cursor: text("cursor").notNull().default(""),
+    rowsPushed: integer("rows_pushed").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("powerbi_checkpoints_org_plant_uidx").on(
+      t.orgId,
+      t.plantId,
+      t.datasetId,
+    ),
+  ],
+);
+
+export const productTelemetry = pgTable(
+  "product_telemetry",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orgId: text("org_id"),
+    plantId: text("plant_id"),
+    role: text("role"),
+    eventName: text("event_name").notNull(),
+    properties: jsonb("properties")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [index("product_telemetry_event_idx").on(t.eventName, t.createdAt)],
+);
+
 export const schema = {
   ...authSchema,
   organizations,
@@ -237,4 +359,9 @@ export const schema = {
   l5EventCursors,
   l5Events,
   reportJobs,
+  apiKeys,
+  webhookEndpoints,
+  webhookDeliveries,
+  powerbiCheckpoints,
+  productTelemetry,
 };

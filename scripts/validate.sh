@@ -16,7 +16,8 @@ for f in \
   PHASE_F_COMPLETION.md \
   PHASE_G_COMPLETION.md \
   docs/SECURITY_REVIEW.md \
-  docs/runbooks/pilot-ops.md
+  docs/runbooks/pilot-ops.md \
+  docs/IMPECCABLE_AUDIT.md
 do
   [[ -f "$f" ]] || fail "missing $f"
 done
@@ -35,17 +36,19 @@ pnpm typecheck
 echo "== validate: unit/integration tests =="
 pnpm test
 
+echo "== validate: infra CDK assertions =="
+pnpm --filter @stamped/l6-infra test
+
 echo "== validate: build =="
 pnpm build
 
 if [[ "${VALIDATE_E2E:-0}" == "1" ]]; then
   echo "== validate: Playwright E2E =="
-  if ! command -v playwright >/dev/null 2>&1 && [[ ! -d node_modules/@playwright ]]; then
-    fail "VALIDATE_E2E=1 but Playwright is not installed"
-  fi
-  pnpm exec playwright test
+  pnpm --filter @stamped/l6-web build
+  pnpm --filter @stamped/l6-web exec playwright install chromium
+  pnpm --filter @stamped/l6-web test:e2e
 else
-  echo "== validate: Playwright E2E skipped (set VALIDATE_E2E=1 when installed) =="
+  echo "== validate: Playwright E2E skipped (set VALIDATE_E2E=1) =="
 fi
 
 echo "validate.sh: ALL GREEN"

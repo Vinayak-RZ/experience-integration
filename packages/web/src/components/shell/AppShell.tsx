@@ -12,6 +12,7 @@ import {
 } from "@/lib/navigation";
 import { GhostButton, PrimaryButton, Sheet } from "@/components/ui/primitives";
 import { ContextualAnalyst } from "@/components/analyst/ContextualAnalyst";
+import { WebVitalsReporter } from "@/components/telemetry/WebVitalsReporter";
 
 function sseMeta(connection: ConnectionStatus): {
   label: string;
@@ -147,6 +148,7 @@ export function AppShell({
 
   return (
     <div className="forge-shell" data-breakpoint-desktop="900px">
+      <WebVitalsReporter plantId="plant_jaipur_01" role={role} />
       <a className="forge-shell__skip" href="#forge-main">
         Skip to main content
       </a>

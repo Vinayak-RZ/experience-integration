@@ -1,6 +1,24 @@
 {
-  "name": "stamped-l6-infra",
+  "name": "@stamped/l6-infra",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "description": "Local compose helpers for L6 — no deployable package"
+  "type": "module",
+  "description": "AWS CDK definitions for L6 Mumbai pilot (ap-south-1)",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts",
+    "synth": "cdk synth --app \"tsx src/bin/app.ts\"",
+    "cdk": "cdk"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.214.0",
+    "constructs": "^10.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "aws-cdk": "^2.214.0",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  }
 }

@@ -5,6 +5,7 @@ import type { WorkerEnv } from "./config.js";
 export const QUEUES = {
   fixturePing: "l6.fixture.ping",
   reportsGenerate: "l6.reports.generate",
+  webhooksDeliver: "l6.webhooks.deliver",
 } as const;
 
 export type FixturePingJob = {
@@ -30,6 +31,7 @@ export async function startWorker(env: WorkerEnv): Promise<PgBoss> {
   await boss.start();
   await boss.createQueue(QUEUES.fixturePing);
   await boss.createQueue(QUEUES.reportsGenerate);
+  await boss.createQueue(QUEUES.webhooksDeliver);
 
   const seenPings = new Set<string>();
   const seenReports = new Set<string>();

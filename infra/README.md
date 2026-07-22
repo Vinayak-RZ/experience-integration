@@ -1,22 +1,13 @@
-# Local infrastructure
+# AWS CDK — Stamped L6 Mumbai pilot
 
-Compose profile for PostgreSQL, product BFF, worker, web, and Mailpit
-(fake SMTP for Phase B invites).
+Definitions only. **Do not deploy** without human `cdk diff` approval.
 
 ```bash
-# from repo root
-docker compose -f infra/docker-compose.yml up
+pnpm --filter @stamped/l6-infra install
+pnpm --filter @stamped/l6-infra test
+pnpm --filter @stamped/l6-infra exec cdk synth --app "tsx src/bin/app.ts"
 ```
 
-Services:
-
-| Service | Port | Notes |
-|---------|------|-------|
-| web | 3000 | Next.js Forge UI |
-| api | 3001 | Product BFF (`/health`, `/ready`) |
-| worker | — | pg-boss against Postgres |
-| postgres | 5432 | `stamped` / `stamped` / `stamped_l6` |
-| mailpit | 1025 SMTP · 8025 UI | Dev email capture |
-
-Copy `.env.example` to `.env` before starting. Public customer `/v1` is not
-served by this profile.
+Stack: RDS Postgres 16, ECS Fargate API (2 tasks), ALB, S3 reports bucket,
+Secrets Manager for DB + Better Auth, CloudWatch logs. Region hard-coded
+`ap-south-1`.

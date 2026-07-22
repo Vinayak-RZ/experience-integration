@@ -28,7 +28,7 @@ todos:
     status: completed
   - id: phase-h-enterprise
     content: "Phase H: deliver public API, API keys, webhooks, Entra, Power BI, product telemetry, and AWS CDK definitions"
-    status: pending
+    status: completed
   - id: phase-n-hardening
     content: "Phase N: complete full E2E, security review, performance, accessibility, validation orchestrator, docs, and runbooks"
     status: completed
