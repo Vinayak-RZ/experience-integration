@@ -4,19 +4,21 @@ import Fastify, {
 } from "fastify";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
+import { registerAdminRoutes } from "./admin/routes.js";
 import type { Auth } from "./auth/index.js";
 import { registerAuthRoutes } from "./auth/routes.js";
 import { type Env, loadEnv } from "./config.js";
+import type { Db } from "./db/client.js";
 import type { Mailer } from "./mail/mailer.js";
+import { registerPlantRoutes } from "./plants/routes.js";
 import { problemHandler } from "./problems.js";
 
 export type AppDeps = {
   env?: Env;
-  /** Optional readiness probe — returns true when dependencies are healthy. */
   checkReady?: () => Promise<boolean> | boolean;
-  /** Better Auth instance — required for /api/auth and /api/me. */
   auth?: Auth;
   mailer?: Mailer;
+  db?: Db;
 };
 
 export async function buildApp(
@@ -105,6 +107,10 @@ export async function buildApp(
 
   if (opts.auth && opts.mailer) {
     await registerAuthRoutes(app, opts.auth, opts.mailer, env);
+  }
+  if (opts.auth && opts.db) {
+    await registerAdminRoutes(app, opts.auth, opts.db);
+    await registerPlantRoutes(app, opts.auth, opts.db);
   }
 
   return app;

@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { RoleSchema, type Role } from "@stamped/l6-contracts";
+import { requirePermission } from "../authz/index.js";
 import type { Db } from "../db/client.js";
 import {
   memberships,
@@ -7,6 +8,7 @@ import {
   plantMemberships,
   plants,
   userPreferences,
+  auditEvents,
 } from "../db/schema.js";
 
 export type MembershipRecord = {
@@ -188,4 +190,257 @@ export async function seedDemoTenant(
     prefs: {},
   });
   return { org, plant, membership };
+}
+
+export async function listOrgMemberships(
+  db: Db,
+  orgId: string,
+): Promise<MembershipRecord[]> {
+  const rows = await db
+    .select()
+    .from(memberships)
+    .where(eq(memberships.orgId, orgId));
+  const result: MembershipRecord[] = [];
+  for (const row of rows) {
+    const plantRows = await db
+      .select()
+      .from(plantMemberships)
+      .where(eq(plantMemberships.membershipId, row.id));
+    result.push({
+      id: row.id,
+      userId: row.userId,
+      orgId: row.orgId,
+      role: RoleSchema.parse(row.role),
+      status: row.status,
+      plantIds: plantRows.map((p) => p.plantId),
+    });
+  }
+  return result;
+}
+
+export async function updateMembershipRoleAndPlants(
+  db: Db,
+  input: {
+    membershipId: string;
+    role: Role;
+    plantIds: string[];
+  },
+): Promise<MembershipRecord> {
+  const role = RoleSchema.parse(input.role);
+  const [membership] = await db
+    .update(memberships)
+    .set({ role, updatedAt: new Date() })
+    .where(eq(memberships.id, input.membershipId))
+    .returning();
+  if (!membership) {
+    throw Object.assign(new Error("Membership not found"), {
+      statusCode: 404,
+      code: "MEMBERSHIP_NOT_FOUND",
+    });
+  }
+  await db
+    .delete(plantMemberships)
+    .where(eq(plantMemberships.membershipId, membership.id));
+  if (input.plantIds.length > 0) {
+    await db.insert(plantMemberships).values(
+      input.plantIds.map((plantId) => ({
+        membershipId: membership.id,
+        plantId,
+      })),
+    );
+  }
+  return {
+    id: membership.id,
+    userId: membership.userId,
+    orgId: membership.orgId,
+    role,
+    status: membership.status,
+    plantIds: input.plantIds,
+  };
+}
+
+export async function setMembershipStatus(
+  db: Db,
+  input: { membershipId: string; status: "active" | "inactive" },
+) {
+  const [membership] = await db
+    .update(memberships)
+    .set({ status: input.status, updatedAt: new Date() })
+    .where(eq(memberships.id, input.membershipId))
+    .returning();
+  if (!membership) {
+    throw Object.assign(new Error("Membership not found"), {
+      statusCode: 404,
+      code: "MEMBERSHIP_NOT_FOUND",
+    });
+  }
+  return membership;
+}
+
+export async function writeAudit(
+  db: Db,
+  input: {
+    orgId?: string | null;
+    actorUserId?: string | null;
+    action: string;
+    resourceType: string;
+    resourceId?: string | null;
+    metadata?: Record<string, unknown>;
+  },
+) {
+  await db.insert(auditEvents).values({
+    orgId: input.orgId ?? null,
+    actorUserId: input.actorUserId ?? null,
+    action: input.action,
+    resourceType: input.resourceType,
+    resourceId: input.resourceId ?? null,
+    metadata: input.metadata ?? {},
+  });
+}
+
+export type AuthorizedPlant = {
+  id: string;
+  orgId: string;
+  externalPlantId: string;
+  name: string;
+  timezone: string;
+  role: Role;
+};
+
+export async function listAuthorizedPlants(
+  db: Db,
+  userId: string,
+): Promise<AuthorizedPlant[]> {
+  const membershipRows = await db
+    .select()
+    .from(memberships)
+    .where(
+      and(eq(memberships.userId, userId), eq(memberships.status, "active")),
+    );
+  const out: AuthorizedPlant[] = [];
+  for (const membership of membershipRows) {
+    const plantRows = await db
+      .select({
+        plant: plants,
+      })
+      .from(plantMemberships)
+      .innerJoin(plants, eq(plants.id, plantMemberships.plantId))
+      .where(eq(plantMemberships.membershipId, membership.id));
+    for (const row of plantRows) {
+      out.push({
+        id: row.plant.id,
+        orgId: row.plant.orgId,
+        externalPlantId: row.plant.externalPlantId,
+        name: row.plant.name,
+        timezone: row.plant.timezone,
+        role: RoleSchema.parse(membership.role),
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * Resolve active plant: preference if still authorized, else first authorized,
+ * else null (caller recovers to empty state).
+ */
+export async function resolveActivePlant(
+  db: Db,
+  input: { userId: string; orgId?: string },
+): Promise<{
+  activePlant: AuthorizedPlant | null;
+  authorized: AuthorizedPlant[];
+  recovered: boolean;
+}> {
+  const authorized = await listAuthorizedPlants(db, input.userId);
+  const scoped = input.orgId
+    ? authorized.filter((p) => p.orgId === input.orgId)
+    : authorized;
+
+  if (scoped.length === 0) {
+    return { activePlant: null, authorized: scoped, recovered: false };
+  }
+
+  const prefs = input.orgId
+    ? await db
+        .select()
+        .from(userPreferences)
+        .where(
+          and(
+            eq(userPreferences.userId, input.userId),
+            eq(userPreferences.orgId, input.orgId),
+          ),
+        )
+        .then((rows) => rows[0])
+    : undefined;
+
+  if (prefs?.activePlantId) {
+    const match = scoped.find((p) => p.id === prefs.activePlantId);
+    if (match) {
+      return { activePlant: match, authorized: scoped, recovered: false };
+    }
+  }
+
+  const fallback = scoped[0]!;
+  if (prefs && input.orgId) {
+    await db
+      .update(userPreferences)
+      .set({ activePlantId: fallback.id, updatedAt: new Date() })
+      .where(eq(userPreferences.id, prefs.id));
+  } else if (input.orgId) {
+    await db.insert(userPreferences).values({
+      userId: input.userId,
+      orgId: input.orgId,
+      activePlantId: fallback.id,
+      prefs: {},
+    });
+  }
+  return {
+    activePlant: fallback,
+    authorized: scoped,
+    recovered: Boolean(prefs?.activePlantId),
+  };
+}
+
+export async function setActivePlant(
+  db: Db,
+  input: { userId: string; orgId: string; plantId: string },
+): Promise<AuthorizedPlant> {
+  const membership = await assertPlantAccess(db, input);
+  requirePermission(membership.role, "plant:switch");
+
+  const existing = await db
+    .select()
+    .from(userPreferences)
+    .where(
+      and(
+        eq(userPreferences.userId, input.userId),
+        eq(userPreferences.orgId, input.orgId),
+      ),
+    )
+    .then((rows) => rows[0]);
+
+  if (existing) {
+    await db
+      .update(userPreferences)
+      .set({ activePlantId: input.plantId, updatedAt: new Date() })
+      .where(eq(userPreferences.id, existing.id));
+  } else {
+    await db.insert(userPreferences).values({
+      userId: input.userId,
+      orgId: input.orgId,
+      activePlantId: input.plantId,
+      prefs: {},
+    });
+  }
+
+  const authorized = await listAuthorizedPlants(db, input.userId);
+  const plant = authorized.find((p) => p.id === input.plantId);
+  if (!plant) {
+    throw Object.assign(new Error("Plant not found after switch"), {
+      statusCode: 404,
+      code: "PLANT_NOT_FOUND",
+    });
+  }
+  return plant;
 }

@@ -2,10 +2,10 @@
 
 ## Current phase
 
-**Phase B — Authentication and tenancy** (starting)
+**Phase B — Authentication and tenancy** (nearly complete)
 
-Phase A foundation is complete. Auto execution continues into auth/tenancy,
-then Forge UX. Public customer `/v1` remains deferred (Phase H).
+RBAC matrix, admin membership APIs, and plant switching are in place.
+Remaining Phase B: auth boundary hardening. Then Phase C Forge UX.
 
 ## Phase status
 
@@ -13,7 +13,7 @@ then Forge UX. Public customer `/v1` remains deferred (Phase H).
 |-------|--------|-----------|
 | 0 — Authority and specification | Complete | Approved artifacts and explicit upstream blockers |
 | A — Workspace and foundation | Complete | Frozen install, migrations, contracts, tests, builds |
-| B — Authentication and tenancy | Pending | Invite/login/plant-switch/RBAC matrix |
+| B — Authentication and tenancy | In progress | Invite/login/plant-switch/RBAC matrix |
 | C — Forge UX system | Pending | Desktop/mobile shell and accessibility baseline |
 | D — Upstream and realtime | Pending | Adapter contracts and resumable SSE |
 | E — Operational control room | Pending | Mobile alarm/Rx and ledger E2E |

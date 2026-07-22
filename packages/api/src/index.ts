@@ -23,6 +23,7 @@ const app = await startServer({
   env,
   auth,
   mailer,
+  db,
   checkReady: () => pingDatabase(pool),
 });
 
