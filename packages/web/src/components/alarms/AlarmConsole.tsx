@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import type { Alarm } from "@/lib/types";
 import { GhostButton, Panel, PrimaryButton, StatusChip } from "@/components/ui/primitives";
+import { RouteStateView } from "@/components/states/RouteStateView";
+import { resolveRouteState } from "@/lib/route-state";
 
 const severityTone = {
   critical: "critical",
@@ -29,9 +31,13 @@ export function AlarmConsole({ initial }: { initial: Alarm[] }) {
 
   if (open.length === 0) {
     return (
-      <Panel>
-        <p style={{ margin: 0 }}>No open alarms — plant looks calm.</p>
-      </Panel>
+      <RouteStateView
+        state={{
+          ...resolveRouteState({ empty: true }),
+          title: "No open alarms",
+          detail: "Plant looks calm — new EMS raises will appear here.",
+        }}
+      />
     );
   }
 

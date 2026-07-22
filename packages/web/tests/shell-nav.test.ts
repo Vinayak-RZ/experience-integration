@@ -46,19 +46,16 @@ describe("responsive Forge shell", () => {
 
   it("renders landmarks, skip link, and truthful offline banner", () => {
     const html = renderToStaticMarkup(
-      createElement(
-        AppShell,
-        {
-          active: "today",
-          plantName: "Jaipur Works",
-          role: "cfo",
-          connection: { sse: "offline" },
-          screenTitle: "Today",
-          contextSummary: ["Bill risk"],
-          criticalAlarmCount: 0,
-        },
-        createElement("p", null, "body"),
-      ),
+      createElement(AppShell, {
+        active: "today",
+        plantName: "Jaipur Works",
+        role: "cfo",
+        connection: { sse: "offline" },
+        screenTitle: "Today",
+        contextSummary: ["Bill risk"],
+        criticalAlarmCount: 0,
+        children: createElement("p", null, "body"),
+      }),
     );
     assert.match(html, /Skip to main content/);
     assert.match(html, /id="forge-main"/);

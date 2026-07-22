@@ -74,13 +74,22 @@ export function Panel({
   children,
   style,
   as: Tag = "section",
+  role,
+  "aria-busy": ariaBusy,
+  "aria-label": ariaLabel,
 }: {
   children: ReactNode;
   style?: CSSProperties;
   as?: "section" | "div" | "article";
+  role?: string;
+  "aria-busy"?: boolean;
+  "aria-label"?: string;
 }) {
   return (
     <Tag
+      role={role}
+      aria-busy={ariaBusy}
+      aria-label={ariaLabel}
       style={{
         background: "var(--forge-surface-container-lowest)",
         border: "1px solid var(--forge-outline-variant)",
