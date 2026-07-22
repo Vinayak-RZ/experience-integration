@@ -15,14 +15,14 @@ export default function AnalystPage() {
       plantName={DEMO_PLANT.plantName}
       role="energy_manager"
       connection={connectionFixture}
-      screenTitle="Full analyst workspace"
+      screenTitle="Ask Analyst"
       contextSummary={[
         `${investigationsFixture.length} saved investigations`,
         "Mode B · citations required",
       ]}
       criticalAlarmCount={demoCriticalAlarmCount()}
     >
-      <PageHead eyebrow="Analyst · Mode B" title="Investigation workspace" />
+      <PageHead eyebrow="Intelligence" title="Ask Analyst" />
       <AnalystWorkspace />
     </AppShell>
   );

@@ -131,6 +131,9 @@ export type NavKey =
   | "reports"
   | "energy"
   | "equipment"
+  | "plant_map"
   | "intensity"
+  | "tools"
+  | "assignments"
   | "integrations"
   | "admin";

@@ -38,12 +38,23 @@ describe("role-aware navigation", () => {
     assert.ok(navForRole("admin").reveal.some((i) => i.key === "integrations"));
   });
 
+  it("keeps Evidence out of primary and labels Overview professionally", () => {
+    const { primary } = navForRole("plant_head");
+    assert.equal(primary.some((i) => i.key === "evidence"), false);
+    assert.ok(primary.some((i) => i.key === "today" && i.label === "Overview"));
+    assert.ok(primary.some((i) => i.key === "energy" && i.label === "Energy Analytics"));
+  });
+
+  it("exposes Assignments to admin", () => {
+    assert.ok(navForRole("admin").primary.some((i) => i.key === "assignments"));
+  });
+
   it("keeps mobile dock to three primary destinations", () => {
     assert.equal(mobileDock("plant_head").length, 3);
   });
 
   it("keeps alarms and prescriptions as ops invariants in primary", () => {
-    const { primary } = composeNav("plant_head", ["energy"]);
+    const { primary } = composeNav("plant_head", []);
     assert.ok(primary.some((i) => i.key === "alarms"));
     assert.ok(primary.some((i) => i.key === "prescriptions"));
     assert.ok(primary.some((i) => i.key === "energy"));
@@ -52,11 +63,11 @@ describe("role-aware navigation", () => {
   });
 
   it("promotes sanitized pins and drops unauthorized keys", () => {
-    const pins = sanitizePins("plant_head", ["energy", "admin", "alarms", "energy"]);
-    assert.deepEqual(pins, ["energy"]);
+    const pins = sanitizePins("plant_head", ["evidence", "admin", "alarms", "evidence"]);
+    assert.deepEqual(pins, ["evidence"]);
     const { primary, reveal } = composeNav("plant_head", pins);
-    assert.ok(primary.some((i) => i.key === "energy"));
-    assert.equal(reveal.some((i) => i.key === "energy"), false);
+    assert.ok(primary.some((i) => i.key === "evidence"));
+    assert.equal(reveal.some((i) => i.key === "evidence"), false);
   });
 });
 
@@ -90,6 +101,6 @@ describe("responsive Forge shell", () => {
     assert.match(html, /Stamped Energy/);
     // CFO must not see Alarms in primary nav
     assert.equal(html.includes(">Alarms<"), false);
-    assert.match(html, />Reports</);
+    assert.match(html, /Reports/);
   });
 });

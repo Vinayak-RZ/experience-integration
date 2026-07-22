@@ -21,7 +21,10 @@ describe("EMS alarm helpers", () => {
   it("applies lifecycle actions and keyboard selection moves", () => {
     const raised = alarmsFixture.find((a) => a.id === "alm_1001")!;
     assert.ok(actionsForState(raised.state).includes("ack"));
-    assert.equal(applyAlarmAction(raised, "ack").state, "acked");
+    const acked = applyAlarmAction(raised, "ack");
+    assert.equal(acked.state, "acked");
+    assert.ok(actionsForState(acked.state).includes("unack"));
+    assert.equal(applyAlarmAction(acked, "unack").state, "raised");
     assert.equal(applyAlarmAction(raised, "silence").state, "silenced");
     assert.equal(moveSelection(0, 1, 3), 1);
     assert.equal(moveSelection(0, -1, 3), 0);

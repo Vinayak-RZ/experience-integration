@@ -58,6 +58,6 @@ describe("Forge token contrast", () => {
 
   it("declares display and body font stacks", () => {
     assert.match(tokens, /Plus Jakarta Sans/);
-    assert.match(tokens, /Inter/);
+    assert.match(tokens, /Public Sans/);
   });
 });

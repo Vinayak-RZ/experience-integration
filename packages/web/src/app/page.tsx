@@ -1,12 +1,15 @@
 import { AppShell } from "@/components/shell/AppShell";
-import { TodayBoard } from "@/components/today/TodayBoard";
+import { OverviewBoard } from "@/components/today/OverviewBoard";
 import { PageHead } from "@/components/ui/primitives";
 import {
   DEMO_PLANT,
+  alarmsFixture,
+  assetsFixture,
   connectionFixture,
   demoClosurePct,
   demoCriticalAlarmCount,
   demoNeedsReviewInr,
+  prescriptionsFixture,
   todaySignalsFixture,
 } from "@/fixtures/demo";
 import { formatInr } from "@/lib/format";
@@ -14,7 +17,7 @@ import { selectTodaySignals } from "@/lib/today-signals";
 
 const ROLE = "plant_head" as const;
 
-export default function TodayPage() {
+export default function OverviewPage() {
   const signals = selectTodaySignals(ROLE, todaySignalsFixture);
   const critical = demoCriticalAlarmCount();
 
@@ -24,7 +27,7 @@ export default function TodayPage() {
       plantName={DEMO_PLANT.plantName}
       role={ROLE}
       connection={connectionFixture}
-      screenTitle="Today at the plant"
+      screenTitle="Overview"
       contextSummary={[
         `${critical} critical alarms`,
         `${formatInr(demoNeedsReviewInr())} open prescriptions`,
@@ -33,21 +36,17 @@ export default function TodayPage() {
       ]}
       criticalAlarmCount={critical}
     >
-      <PageHead
-        eyebrow={`${DEMO_PLANT.orgName} · demo`}
-        title="Today at the plant"
-      />
-      <p
-        style={{
-          margin: "0 0 16px",
-          fontSize: 13,
-          color: "var(--forge-on-surface-variant)",
-        }}
-      >
-        {DEMO_PLANT.contractDemandNote} · As of {DEMO_PLANT.demoAsOf} ·{" "}
-        {DEMO_PLANT.tariff}
+      <PageHead eyebrow={`${DEMO_PLANT.orgName} · demo`} title="Overview" />
+      <p style={{ margin: "0 0 4px", fontSize: 13, color: "var(--forge-on-surface-variant)" }}>
+        {DEMO_PLANT.contractDemandNote} · As of {DEMO_PLANT.demoAsOf} · {DEMO_PLANT.tariff}
       </p>
-      <TodayBoard signals={signals} closurePct={demoClosurePct()} />
+      <OverviewBoard
+        signals={signals}
+        closurePct={demoClosurePct()}
+        alarms={alarmsFixture}
+        prescriptions={prescriptionsFixture}
+        assets={assetsFixture}
+      />
     </AppShell>
   );
 }

@@ -16,14 +16,14 @@ export default function EnergyPage() {
       plantName={DEMO_PLANT.plantName}
       role="energy_manager"
       connection={connectionFixture}
-      screenTitle="Energy"
+      screenTitle="Energy Analytics"
       contextSummary={[
         `MTD ${formatIndianNum(energyKpisFixture.mtdGridKwh)} kWh`,
         `Peak MD ${formatIndianNum(energyKpisFixture.peakMdKva)} kVA`,
       ]}
       criticalAlarmCount={demoCriticalAlarmCount()}
     >
-      <PageHead eyebrow="Analytics" title="Energy" />
+      <PageHead eyebrow="Analytics" title="Energy Analytics" />
       <EnergyBoard />
     </AppShell>
   );
