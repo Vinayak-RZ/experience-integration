@@ -58,7 +58,7 @@ export function ContextualAnalyst({
           height: "100vh",
           width: 380,
           maxWidth: "92vw",
-          background: "var(--forge-surface-lowest)",
+          background: "var(--forge-surface-container-lowest)",
           boxShadow: "var(--forge-shadow-panel)",
           zIndex: 50,
           display: "flex",

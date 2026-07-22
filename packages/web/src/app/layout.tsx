@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/tokens.css";
+import "@/components/shell/shell.css";
 
 export const metadata: Metadata = {
   title: "Stamped Energy",
