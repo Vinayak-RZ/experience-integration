@@ -111,7 +111,7 @@ jobs:
         run: pnpm test:integration
 
       - name: BFF smoke
-        run: pnpm exec tsx scripts/smoke-bff.ts
+        run: pnpm smoke:bff
 
   browser-e2e:
     runs-on: ubuntu-latest
