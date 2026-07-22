@@ -1,7 +1,7 @@
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
 import { SavingsLedger } from "@/components/ledger/SavingsLedger";
-import { ExportHub } from "@/components/reports/ExportHub";
+import { ExportCentre } from "@/components/reports/ExportCentre";
 import {
   DEMO_PLANT,
   connectionFixture,
@@ -17,12 +17,12 @@ export default function ReportsPage() {
       role="plant_head"
       connection={connectionFixture}
       screenTitle="Reports and ledger"
-      contextSummary={["Ops-confirmed ledger", "CSV export centre"]}
+      contextSummary={["Export centre", "Approval-gated packs"]}
       criticalAlarmCount={2}
     >
-      <PageHead eyebrow="Exports" title="Savings ledger" />
+      <PageHead eyebrow="Exports" title="Reports & ledger" />
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <ExportHub ledger={ledgerFixture} prescriptions={prescriptionsFixture} />
+        <ExportCentre ledger={ledgerFixture} prescriptions={prescriptionsFixture} />
         <SavingsLedger rows={ledgerFixture} />
       </div>
     </AppShell>
