@@ -135,7 +135,8 @@ ECharts must not load on non-chart routes. A sampled 43,200-point chart targets
 
 ## Delivery status
 
-The repository currently contains the platform submodule and a typed,
-fixture-backed Next.js reference seed. Live BFF, authentication, upstream
-integration, jobs, enterprise integrations, and deployment remain to be
-implemented according to `IMPLEMENTATION_PLAN.md`.
+Phases **0–H** and **N** are complete in this repository (Forge product, BFF,
+public `/v1`, worker, Playwright, CI, Mumbai CDK definitions). **Cutover** to
+live Entra / Power BI / ECR remains blocked on human credentials and `cdk diff`
+approval — see [`PROGRESS.md`](PROGRESS.md). UI demos use the Jaipur Works
+fixture plant in `packages/web/src/fixtures/demo.ts`.
