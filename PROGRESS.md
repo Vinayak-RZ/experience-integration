@@ -2,10 +2,11 @@
 
 ## Current phase
 
-**Phase G — Reports and sustainability** (starting)
+**Phase N — Hardening** (starting)
 
-Phases 0–F product Auto surfaces are in place. Playwright E2E and public `/v1`
-remain deferred (Phase N / Phase H).
+Phases 0–G Auto product surfaces are in place. Phase H public `/v1` remains
+deferred per Auto-not-API. Pilot cutover stays blocked on credentials and
+human approval.
 
 ## Phase status
 
@@ -18,15 +19,16 @@ remain deferred (Phase N / Phase H).
 | D — Upstream and realtime | Complete | Adapter contracts and resumable SSE |
 | E — Operational control room | Complete* | Product flows shipped; Playwright E2E → Phase N |
 | F — Analytics and analyst | Complete | Dense charts and confirmed analyst handoff |
-| G — Reports and sustainability | In progress | Approved PDF/XLSX and job recovery |
+| G — Reports and sustainability | Complete† | HTML/CSV + approval UX; PDF/XLSX binary deferred |
 | H — Enterprise integration | Deferred (Auto) | Public API last; UX/ops first |
-| N — Hardening | Pending | Full validation and no high security findings |
+| N — Hardening | In progress | Full validation and no high security findings |
 | Cutover — AWS Mumbai pilot | Blocked | Credentials, upstream contracts, and human approval |
 
-\* Browser E2E matrix waits on Playwright install in Phase N.
+\* Browser E2E matrix waits on Playwright.  
+† Print HTML + CSV shipped; Playwright PDF / ExcelJS XLSX deferred.
 
 ## Immediate next work
 
-1. pg-boss report scheduling and lifecycle.
-2. Print-safe sustainability template + PDF/XLSX artifacts.
-3. Focused BRSR/PAT content and Export Centre approval UX.
+1. Expand validation orchestrator / security review notes.
+2. Install Playwright for operational E2E (or document remaining gap).
+3. Runbooks + known-limits for Mumbai pilot readiness.

@@ -25,13 +25,13 @@ todos:
     status: completed
   - id: phase-g-reports-sustainability
     content: "Phase G: deliver pg-boss report lifecycle, PDF/XLSX, sustainability metrics, focused BRSR/PAT output, and Export Centre"
-    status: in_progress
+    status: completed
   - id: phase-h-enterprise
     content: "Phase H: deliver public API, API keys, webhooks, Entra, Power BI, product telemetry, and AWS CDK definitions"
     status: pending
   - id: phase-n-hardening
     content: "Phase N: complete full E2E, security review, performance, accessibility, validation orchestrator, docs, and runbooks"
-    status: pending
+    status: in_progress
   - id: cutover-aws-pilot
     content: "Cutover: deploy and certify the AWS Mumbai pilot with migrations, smoke, integration acceptance, and rollback proof"
     status: pending
