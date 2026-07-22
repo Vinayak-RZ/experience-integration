@@ -1,7 +1,6 @@
-import { Suspense } from "react";
-import { EquipmentWorkspace } from "@/components/equipment/EquipmentWorkspace";
+import { EquipmentMap } from "@/components/analytics/EquipmentMap";
 import { AppShell } from "@/components/shell/AppShell";
-import { PageHead, Skeleton } from "@/components/ui/primitives";
+import { PageHead } from "@/components/ui/primitives";
 import {
   DEMO_PLANT,
   assetsFixture,
@@ -22,14 +21,12 @@ export default function EquipmentPage() {
       screenTitle="Machine Health"
       contextSummary={[
         `${assetsFixture.length} assets · ${hot} hot · ${watch} watch`,
-        "Health dials · energy twin",
+        "Load dials",
       ]}
       criticalAlarmCount={demoCriticalAlarmCount()}
     >
-      <PageHead eyebrow="Operations" title="Machine Health & Plant Map" />
-      <Suspense fallback={<Skeleton height={320} label="Loading equipment" />}>
-        <EquipmentWorkspace />
-      </Suspense>
+      <PageHead eyebrow="Operations" title="Machine Health" />
+      <EquipmentMap />
     </AppShell>
   );
 }

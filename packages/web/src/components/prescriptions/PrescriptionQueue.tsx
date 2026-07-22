@@ -247,13 +247,9 @@ export function PrescriptionQueue({ initial }: { initial: Prescription[] }) {
                   {(lane === "needs_review" || lane === "active") && (
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {lane === "needs_review" ? (
-                        <SecondaryButton
-                          onClick={() => setAssignFor(rx)}
-                        >
-                          Assign…
-                        </SecondaryButton>
+                        <PrimaryButton onClick={() => setAssignFor(rx)}>Assign</PrimaryButton>
                       ) : null}
-                      <PrimaryButton onClick={() => run(rx.id, "done")}>Mark done</PrimaryButton>
+                      <SecondaryButton onClick={() => run(rx.id, "done")}>Mark done</SecondaryButton>
                       <GhostButton onClick={() => run(rx.id, "defer")}>Defer…</GhostButton>
                       <GhostButton onClick={() => run(rx.id, "reject")}>Reject…</GhostButton>
                       <Link

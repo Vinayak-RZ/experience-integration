@@ -142,3 +142,28 @@
     grid-template-columns: 1fr;
   }
 }
+
+.forge-btn:hover:not(:disabled) {
+  filter: brightness(0.97);
+}
+
+.forge-btn--primary:hover:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(247, 84, 64, 0.28);
+  filter: brightness(1.03);
+}
+
+.forge-btn--secondary:hover:not(:disabled) {
+  background: rgba(247, 84, 64, 0.08);
+}
+
+.forge-btn--ghost:hover:not(:disabled) {
+  border-color: var(--forge-outline);
+  color: var(--forge-on-surface);
+}
+
+.forge-btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
