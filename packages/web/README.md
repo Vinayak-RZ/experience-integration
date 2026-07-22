@@ -26,11 +26,14 @@ TRANSFER.md            # What came from the platform seed
 
 ## Setup
 
+From the repository root:
+
 ```bash
-npm install
-npm run typecheck
-npm test
-npm run build
+corepack enable
+pnpm install
+pnpm --filter @stamped/l6-web typecheck
+pnpm --filter @stamped/l6-web test
+pnpm --filter @stamped/l6-web build
 ```
 
 ## Next

@@ -1,0 +1,21 @@
+{
+  "name": "stamped-l6",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "dev": "pnpm --parallel --filter './packages/*' dev",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "validate": "pnpm typecheck && pnpm test && pnpm build",
+    "ci:local": "bash ./scripts/ci-local.sh",
+    "contracts:check": "./external/scripts/contract-check.sh",
+    "contracts:upstream": "node ./scripts/check-upstream-contracts.mjs",
+    "test:integration": "pnpm --filter @stamped/l6-api --filter @stamped/l6-worker test",
+    "compose:smoke": "bash ./scripts/compose-smoke.sh"
+  }
+}

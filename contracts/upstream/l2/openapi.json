@@ -1,0 +1,36 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Stamped L2 — Query API (fixture placeholder)",
+    "version": "0.0.0-fixture",
+    "description": "Placeholder until universal-repositary publishes customer-safe query OpenAPI. L6 never uses L2_DATABASE_URL."
+  },
+  "paths": {
+    "/v1/measurements": {
+      "get": {
+        "summary": "Read measurements",
+        "operationId": "listMeasurements",
+        "responses": { "200": { "description": "Timeseries page" } }
+      }
+    },
+    "/v1/ledger/entries": {
+      "get": {
+        "summary": "Customer-safe ledger entries (UPSTREAM GAP)",
+        "operationId": "listLedgerEntries",
+        "x-stamped-status": "upstream_missing",
+        "responses": { "501": { "description": "Not published by L2 yet" } }
+      }
+    },
+    "/v1/baselines/{baseline_id}": {
+      "get": {
+        "summary": "Read baseline (UPSTREAM GAP)",
+        "operationId": "getBaseline",
+        "x-stamped-status": "upstream_missing",
+        "parameters": [
+          { "name": "baseline_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "501": { "description": "Not published by L2 yet" } }
+      }
+    }
+  }
+}

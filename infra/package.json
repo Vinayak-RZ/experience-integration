@@ -1,0 +1,6 @@
+{
+  "name": "stamped-l6-infra",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Local compose helpers for L6 — no deployable package"
+}
