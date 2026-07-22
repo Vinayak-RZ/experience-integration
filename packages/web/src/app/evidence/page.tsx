@@ -1,31 +1,52 @@
 import { AppShell } from "@/components/shell/AppShell";
-import { PageHead, Panel } from "@/components/ui/primitives";
-import { LoadDial } from "@/components/charts/LoadDial";
-import { EvidenceTrend } from "@/components/charts/EvidenceTrend";
-import { DEMO_PLANT, connectionFixture } from "@/fixtures/demo";
+import { PageHead } from "@/components/ui/primitives";
+import { EvidenceExplorer } from "@/components/evidence/EvidenceExplorer";
+import {
+  DEMO_PLANT,
+  alarmsFixture,
+  connectionFixture,
+  prescriptionsFixture,
+} from "@/fixtures/demo";
+import { buildEvidencePack, resolveEvidenceScope } from "@/lib/evidence";
 
-export default function EvidencePage() {
+export default async function EvidencePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ alarmId?: string; rxId?: string }>;
+}) {
+  const sp = await searchParams;
+  const scope = resolveEvidenceScope({
+    plantId: DEMO_PLANT.plantId,
+    alarmId: sp.alarmId,
+    rxId: sp.rxId,
+    alarms: alarmsFixture,
+    prescriptions: prescriptionsFixture,
+  });
+  // ponytail: fixture Auto — baseline stays gated until L2_FEATURE_BASELINES
+  const pack = buildEvidencePack(scope, { baselineAvailable: false });
+
   return (
     <AppShell
       active="evidence"
       plantName={DEMO_PLANT.plantName}
       role="supervisor"
       connection={connectionFixture}
-      screenTitle="Evidence explorer"
-      contextSummary={["Pre-scoped charts", "Baseline bands via ECharts"]}
+      screenTitle={scope.title}
+      contextSummary={[
+        scope.assetLabel,
+        pack.missing.length ? `Partial: ${pack.missing.join(", ")}` : "Complete",
+      ]}
+      focusEntity={
+        scope.rxId
+          ? { type: "prescription", id: scope.rxId }
+          : scope.alarmId
+            ? { type: "alarm", id: scope.alarmId }
+            : undefined
+      }
       criticalAlarmCount={2}
     >
-      <PageHead eyebrow="Proof" title="Evidence explorer" />
-      <Panel style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-        <LoadDial loadPct={108} label="Kiln 1" />
-        <LoadDial loadPct={72} label="Mill 1" />
-        <LoadDial loadPct={54} label="Compressor 2" />
-        <p style={{ flex: "1 1 240px", fontSize: 13, color: "var(--forge-on-surface-variant)" }}>
-          Dense trends use canvas ECharts with min-max + LTTB sampling and a data-table
-          alternative. Load dials stay SVG for at-a-glance asset state.
-        </p>
-      </Panel>
-      <EvidenceTrend />
+      <PageHead eyebrow="Proof" title={scope.title} />
+      <EvidenceExplorer pack={pack} />
     </AppShell>
   );
 }
