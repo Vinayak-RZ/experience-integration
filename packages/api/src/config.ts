@@ -61,6 +61,17 @@ const EnvSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+  /** L4 Knowledge & Reasoning — fixture mode until live OpenAPI. */
+  L4_BASE_URL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().url().default("http://127.0.0.1:8104"),
+  ),
+  L4_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
+  L4_AUTH_TOKEN: z.string().optional(),
+  L4_LIVE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
