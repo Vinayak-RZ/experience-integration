@@ -29,7 +29,7 @@ Local components implement these sources; they do not redefine the brand.
 ## Typography
 
 - Plus Jakarta Sans for page titles and display values.
-- Inter for body, controls, and data.
+- Public Sans for body, controls, and data.
 - Tabular numerals for ₹, energy, demand, percentages, and tables.
 - Minimum 1.25 scale ratio between hierarchy levels.
 - Body copy remains within 65–75 characters where it is read sequentially.
@@ -69,18 +69,18 @@ Mobile
 
 ### Primary
 
-`/`, `/alarms`, `/alarms/[id]`, `/prescriptions`,
-`/prescriptions/[id]`, `/evidence`, `/analyst`, `/reports`,
-`/reports/ledger`, `/settings`.
+`/` (Overview), `/alarms`, `/alarms/[id]`, `/prescriptions`,
+`/prescriptions/[id]`, `/analyst` (Ask Analyst), `/reports`,
+`/energy`, `/equipment` (Machine Health + Plant Map), `/intensity` (Sustainability),
+`/tools`, `/settings/admin`, `/settings/assignments`.
 
-### Progressive reveal
+### Progressive reveal / deep-link
 
-`/energy`, `/equipment`, `/energy/tod`, `/intensity`,
-`/settings/integrations`, `/settings/admin`.
+`/evidence` (opened from Rx / alarms, not primary nav),
+`/settings/integrations`.
 
-Alarms and Prescriptions cannot be removed from primary navigation for
-operational roles. Users may pin Energy and Equipment.
-
+Alarms and AI Prescriptions cannot be removed from primary navigation for
+operational roles.
 ## Required states
 
 Every primary route implements:

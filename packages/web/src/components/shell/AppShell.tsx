@@ -2,15 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ConnectionStatus, NavKey, Role } from "@/lib/types";
 import {
   composeNav,
   mobileDock,
+  readCollapsed,
   readPins,
-  togglePin,
-  writePins,
+  writeCollapsed,
 } from "@/lib/navigation";
-import { GhostButton, PrimaryButton, Sheet } from "@/components/ui/primitives";
+import { NAV_ICONS } from "@/lib/nav-icons";
+import {
+  Factory,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "@/components/ui/icons";
+import type { ConnectionStatus, NavKey, Role } from "@/lib/types";
+import { PrimaryButton, Sheet } from "@/components/ui/primitives";
 import { ContextualAnalyst } from "@/components/analyst/ContextualAnalyst";
 import { WebVitalsReporter } from "@/components/telemetry/WebVitalsReporter";
 
@@ -62,92 +68,62 @@ export function AppShell({
   criticalAlarmCount: number;
   children: React.ReactNode;
 }) {
-  const [revealed, setRevealed] = useState(false);
   const [analystOpen, setAnalystOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [pins, setPins] = useState<NavKey[]>([]);
+  const [collapsed, setCollapsed] = useState(false);
   const askAnalystRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    setPins(readPins(typeof window !== "undefined" ? window.localStorage : null));
+    const storage = typeof window !== "undefined" ? window.localStorage : null;
+    setPins(readPins(storage));
+    setCollapsed(readCollapsed(storage));
   }, []);
 
   const { primary, reveal } = useMemo(() => composeNav(role, pins), [role, pins]);
   const dock = useMemo(() => mobileDock(role, pins), [role, pins]);
   const sse = useMemo(() => sseMeta(connection), [connection]);
 
-  function onTogglePin(key: NavKey) {
-    const next = togglePin(role, pins, key);
-    setPins(next);
-    writePins(typeof window !== "undefined" ? window.localStorage : null, next);
+  function onToggleCollapse() {
+    const next = !collapsed;
+    setCollapsed(next);
+    writeCollapsed(typeof window !== "undefined" ? window.localStorage : null, next);
   }
 
-  const navLinks = (items: typeof primary, revealStyle = false) =>
-    items.map((item) => (
-      <div
-        key={item.key}
-        style={{ display: "flex", alignItems: "center", gap: 4 }}
-      >
+  const navLinks = (items: typeof primary) =>
+    items.map((item) => {
+      const Icon = NAV_ICONS[item.key];
+      const isActive =
+        active === item.key ||
+        (item.key === "plant_map" && active === "equipment") ||
+        (item.key === "equipment" && active === "equipment");
+      return (
         <Link
+          key={item.key}
           href={item.href}
-          aria-current={active === item.key ? "page" : undefined}
-          className={
-            revealStyle
-              ? "forge-shell__nav-link forge-shell__nav-link--reveal"
-              : "forge-shell__nav-link"
-          }
-          style={{ flex: 1 }}
+          aria-current={isActive && item.key !== "plant_map" ? "page" : undefined}
+          title={item.label}
+          className="forge-shell__nav-link"
           onClick={() => setMobileNavOpen(false)}
         >
-          <span>{item.label}</span>
-          {item.key === "alarms" && criticalAlarmCount > 0 ? (
-            <span className="tabular" aria-label={`${criticalAlarmCount} critical`}>
+          <Icon size={18} strokeWidth={isActive ? 2.4 : 2} aria-hidden />
+          {!collapsed ? (
+            <span className="forge-shell__nav-label">{item.label}</span>
+          ) : null}
+          {!collapsed && item.key === "alarms" && criticalAlarmCount > 0 ? (
+            <span className="tabular forge-shell__nav-badge" aria-label={`${criticalAlarmCount} critical`}>
               {criticalAlarmCount}
             </span>
           ) : null}
         </Link>
-        {revealStyle ? (
-          <button
-            type="button"
-            aria-label={`Pin ${item.label} to primary nav`}
-            onClick={() => onTogglePin(item.key)}
-            style={{
-              minHeight: 44,
-              minWidth: 44,
-              borderRadius: 8,
-              border: "1px solid var(--forge-outline-variant)",
-              background: "transparent",
-              color: "var(--forge-secondary)",
-              fontSize: 11,
-              fontWeight: 700,
-            }}
-          >
-            Pin
-          </button>
-        ) : pins.includes(item.key) ? (
-          <button
-            type="button"
-            aria-label={`Unpin ${item.label}`}
-            onClick={() => onTogglePin(item.key)}
-            style={{
-              minHeight: 44,
-              minWidth: 44,
-              borderRadius: 8,
-              border: "1px solid var(--forge-outline-variant)",
-              background: "transparent",
-              color: "var(--forge-on-surface-variant)",
-              fontSize: 11,
-              fontWeight: 700,
-            }}
-          >
-            Unpin
-          </button>
-        ) : null}
-      </div>
-    ));
+      );
+    });
 
   return (
-    <div className="forge-shell" data-breakpoint-desktop="900px">
+    <div
+      className={`forge-shell${collapsed ? " forge-shell--collapsed" : ""}`}
+      data-breakpoint-desktop="900px"
+    >
       <WebVitalsReporter plantId="plant_jaipur_01" role={role} />
       <a className="forge-shell__skip" href="#forge-main">
         Skip to main content
@@ -161,15 +137,6 @@ export function AppShell({
             aria-label="Open navigation"
             aria-expanded={mobileNavOpen}
             onClick={() => setMobileNavOpen(true)}
-            style={{
-              minHeight: 48,
-              minWidth: 48,
-              borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.35)",
-              color: "#fff",
-              background: "transparent",
-              fontWeight: 700,
-            }}
           >
             Menu
           </button>
@@ -193,24 +160,42 @@ export function AppShell({
           className="forge-shell__sidebar"
           data-shell="desktop-nav"
         >
-          {navLinks(primary)}
-          {reveal.length > 0 ? (
-            <>
-              <GhostButton onClick={() => setRevealed((v) => !v)}>
-                {revealed ? "Hide tools" : "More tools"}
-              </GhostButton>
-              {revealed ? navLinks(reveal, true) : null}
-            </>
+          {!collapsed ? (
+            <div className="forge-shell__facility">
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Factory size={18} color="var(--forge-primary)" aria-hidden />
+                <span className="forge-shell__facility-name">{plantName.split(",")[0] ?? plantName}</span>
+              </div>
+              <p className="forge-shell__facility-meta">{plantName}</p>
+            </div>
           ) : null}
-          <p
-            style={{
-              marginTop: "auto",
-              fontSize: 11,
-              color: "var(--forge-on-surface-variant)",
-            }}
+
+          <div className="forge-shell__nav-scroll forge-scroll-thin">
+            {navLinks(primary)}
+            {reveal.length > 0 && !collapsed ? (
+              <div className="forge-shell__reveal">
+                <p className="forge-eyebrow" style={{ margin: "12px 4px 6px" }}>
+                  More
+                </p>
+                {navLinks(reveal)}
+              </div>
+            ) : null}
+          </div>
+
+          <button
+            type="button"
+            className="forge-shell__collapse"
+            aria-label={collapsed ? "Expand navigation" : "Minimize navigation"}
+            aria-pressed={collapsed}
+            onClick={onToggleCollapse}
           >
-            Role: {role.replaceAll("_", " ")}
-          </p>
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            {!collapsed ? <span>Minimize</span> : null}
+          </button>
+
+          {!collapsed ? (
+            <p className="forge-shell__role">Role: {role.replaceAll("_", " ")}</p>
+          ) : null}
         </nav>
 
         <main id="forge-main" className="forge-shell__main" tabIndex={-1}>
@@ -224,42 +209,33 @@ export function AppShell({
       </div>
 
       <nav aria-label="Mobile primary" className="forge-shell__dock" data-shell="mobile-dock">
-        {dock.map((item) => (
-          <Link
-            key={item.key}
-            href={item.href}
-            aria-current={active === item.key ? "page" : undefined}
-          >
-            {item.label}
-          </Link>
-        ))}
-        <button type="button" onClick={() => setMobileNavOpen(true)}>
-          More
-        </button>
+        {dock.map((item) => {
+          const Icon = NAV_ICONS[item.key];
+          return (
+            <Link
+              key={item.key}
+              href={item.href}
+              aria-current={active === item.key ? "page" : undefined}
+            >
+              <Icon size={16} aria-hidden />
+              <span>{item.label.split(" ")[0]}</span>
+            </Link>
+          );
+        })}
+        <Link href="/tools">
+          <span>Tools</span>
+        </Link>
       </nav>
 
-      <Sheet
-        open={mobileNavOpen}
-        onClose={() => setMobileNavOpen(false)}
-        title="Navigate"
-      >
+      <Sheet open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} title="Navigate">
         <nav aria-label="Mobile full" style={{ display: "grid", gap: 4 }}>
           {navLinks(primary)}
           {reveal.length > 0 ? (
             <>
-              <p
-                style={{
-                  margin: "12px 0 4px",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "var(--forge-on-surface-variant)",
-                }}
-              >
-                More tools
+              <p className="forge-eyebrow" style={{ margin: "12px 0 4px" }}>
+                More
               </p>
-              {navLinks(reveal, true)}
+              {navLinks(reveal)}
             </>
           ) : null}
           <p style={{ marginTop: 16, fontSize: 12, color: "var(--forge-on-surface-variant)" }}>

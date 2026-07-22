@@ -26,7 +26,7 @@ export default function PrescriptionsPage() {
       focusEntity={{ type: "prescription", id: prescriptionsFixture[0]!.id }}
       criticalAlarmCount={demoCriticalAlarmCount()}
     >
-      <PageHead eyebrow="Closure" title="Prescription queue" />
+      <PageHead eyebrow="Closure" title="AI Prescriptions" />
       <PrescriptionQueue initial={prescriptionsFixture} />
     </AppShell>
   );

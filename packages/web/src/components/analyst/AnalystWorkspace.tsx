@@ -47,12 +47,19 @@ const BASE_ENVELOPE: AnalystContextEnvelope = {
   userId: "user_demo",
   role: "energy_manager",
   routeId: "analyst",
-  screenTitle: "Investigation workspace",
+  screenTitle: "Ask Analyst",
   visibleSummary: ["Mode B workspace", "Citations required"],
   focusEntity: { type: "alarm", id: "alm_1001" },
 };
 
-/** Mode B full analyst workspace — fixture L4; confirm before any L5 write. */
+const QUICK = [
+  { id: "q1", label: "Summarize open alarms", prompt: "Summarize open critical and warning alarms for this plant." },
+  { id: "q2", label: "Explain top prescription", prompt: "Explain the highest-impact open prescription and evidence." },
+  { id: "q3", label: "Peak demand last week", prompt: "What drove peak demand last week versus CMD?" },
+  { id: "q4", label: "Closure status", prompt: "How is prescription closure tracking this billing cycle?" },
+] as const;
+
+/** Mode B — Script-style center chat + right context rail. */
 export function AnalystWorkspace() {
   const [activeInv, setActiveInv] = useState(investigationsFixture[0]!.id);
   const [draft, setDraft] = useState("");
@@ -62,6 +69,7 @@ export function AnalystWorkspace() {
   const [proposal, setProposal] = useState<ProposedAction | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [started, setStarted] = useState(false);
 
   const envelope = useMemo(() => {
     const inv = investigationsFixture.find((i) => i.id === activeInv)!;
@@ -83,11 +91,13 @@ export function AnalystWorkspace() {
     setProposal(null);
     setStatus(null);
     setConfirming(false);
+    setStarted(true);
   }
 
-  function send() {
-    const q = draft.trim();
+  function send(text?: string) {
+    const q = (text ?? draft).trim();
     if (!q) return;
+    setStarted(true);
     const userMsg: AnalystMessage = { id: `u_${Date.now()}`, role: "user", content: q };
     const reply = fixtureAnalystReply(envelope, q);
     setMessages((prev) => [...prev, userMsg, reply]);
@@ -102,7 +112,6 @@ export function AnalystWorkspace() {
       setStatus(gate.reason);
       return;
     }
-    // ponytail: fixture handoff — never auto-write to L5
     setStatus(`Handoff confirmed: ${proposal.label} → ${proposal.targetId} (not sent upstream)`);
     setProposal(null);
     setConfirming(false);
@@ -112,152 +121,202 @@ export function AnalystWorkspace() {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "240px 1.4fr 1fr",
-        gap: 12,
-        minHeight: 480,
+        gridTemplateColumns: "minmax(0, 1.6fr) minmax(280px, 0.9fr)",
+        gap: 16,
+        minHeight: 520,
       }}
       className="analyst-grid"
       data-analyst-mode="B"
     >
-      <Panel>
-        <h2 style={{ margin: "0 0 12px", fontSize: 14, fontFamily: "var(--forge-font-display)" }}>
-          Investigations
-        </h2>
-        <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 6 }}>
-          {investigationsFixture.map((inv) => (
-            <li key={inv.id}>
-              <button
-                type="button"
-                onClick={() => selectInv(inv.id)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  minHeight: 44,
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  background:
-                    activeInv === inv.id
-                      ? "var(--forge-secondary)"
-                      : "var(--forge-surface-container)",
-                  color: activeInv === inv.id ? "#fff" : "var(--forge-on-surface)",
-                }}
-              >
-                <span style={{ display: "block" }}>{inv.title}</span>
-                <span
+      <Panel style={{ display: "flex", flexDirection: "column", gap: 16, minHeight: 520 }}>
+        {!started && messages.length <= 2 ? (
+          <div>
+            <h2
+              style={{
+                margin: 0,
+                fontFamily: "var(--forge-font-display)",
+                fontSize: 28,
+                fontWeight: 800,
+              }}
+            >
+              Welcome to Ask Analyst
+            </h2>
+            <p style={{ margin: "8px 0 0", color: "var(--forge-on-surface-variant)", fontSize: 14 }}>
+              Investigate alarms, prescriptions, and demand with removable context. Actions to L5
+              always require confirm.
+            </p>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+                marginTop: 20,
+              }}
+            >
+              {QUICK.map((q) => (
+                <button
+                  key={q.id}
+                  type="button"
+                  onClick={() => send(q.prompt)}
                   style={{
-                    display: "block",
-                    marginTop: 4,
-                    fontWeight: 500,
-                    fontSize: 11,
-                    opacity: 0.85,
+                    textAlign: "left",
+                    padding: 16,
+                    borderRadius: 12,
+                    border: "1px solid var(--forge-outline-variant)",
+                    background: "var(--forge-surface-container-low)",
+                    fontWeight: 700,
+                    fontSize: 14,
                   }}
                 >
-                  {inv.summary}
-                </span>
-              </button>
-            </li>
-          ))}
-          <li style={{ fontSize: 13, color: "var(--forge-on-surface-variant)", padding: 8 }}>
-            New investigation… (saved list is fixture)
-          </li>
-        </ul>
-      </Panel>
+                  {q.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
-      <Panel style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 14, fontFamily: "var(--forge-font-display)" }}>
-          Conversation
-        </h2>
         <div
           style={{
             flex: 1,
-            background: "var(--forge-surface-low)",
-            borderRadius: 8,
-            padding: 12,
-            fontSize: 13,
+            background: "var(--forge-surface-container-low)",
+            borderRadius: 12,
+            padding: 14,
+            fontSize: 14,
             overflow: "auto",
             minHeight: 200,
           }}
           aria-live="polite"
         >
-          {messages.length === 0 ? (
-            <p style={{ margin: 0, color: "var(--forge-on-surface-variant)" }}>
-              Full analyst uses L4 ReAct with citations. Fixture Auto replies until live HTTP is
-              enabled.
-            </p>
-          ) : (
-            messages.map((m) => (
-              <div key={m.id} style={{ marginBottom: 12 }}>
-                <strong>{m.role === "user" ? "You" : "Analyst"}</strong>
-                <p style={{ margin: "4px 0 0" }}>{m.content}</p>
-              </div>
-            ))
-          )}
+          {messages.map((m) => (
+            <div key={m.id} style={{ marginBottom: 14 }}>
+              <strong style={{ fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
+                {m.role === "user" ? "You" : "Analyst"}
+              </strong>
+              <p style={{ margin: "4px 0 0", lineHeight: 1.5 }}>{m.content}</p>
+            </div>
+          ))}
         </div>
-        <input
-          aria-label="Ask full analyst"
-          placeholder="Investigate across the plant…"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") send();
-          }}
+
+        <div
           style={{
             border: "1px solid var(--forge-outline-variant)",
-            borderRadius: 8,
-            padding: "10px 12px",
-            fontSize: 13,
+            borderRadius: 14,
+            padding: 12,
+            background: "var(--forge-surface-container-lowest)",
           }}
-        />
-        <PrimaryButton onClick={send}>Send</PrimaryButton>
+        >
+          <input
+            aria-label="Ask full analyst"
+            placeholder="Ask about alarms, prescriptions, demand…"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") send();
+            }}
+            style={{
+              width: "100%",
+              border: "none",
+              outline: "none",
+              fontSize: 15,
+              fontFamily: "var(--forge-font-body)",
+              background: "transparent",
+              minHeight: 40,
+            }}
+          />
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+            <PrimaryButton onClick={() => send()}>Send</PrimaryButton>
+          </div>
+        </div>
+        <p style={{ margin: 0, fontSize: 11, color: "var(--forge-on-surface-variant)" }}>
+          Fixture Auto replies until live L4 HTTP is enabled. Citations required for claims.
+        </p>
       </Panel>
 
-      <Panel>
-        <h2 style={{ margin: "0 0 12px", fontSize: 14, fontFamily: "var(--forge-font-display)" }}>
-          Sources & evidence
-        </h2>
-        {citations.length === 0 ? (
-          <p style={{ margin: 0, fontSize: 13, color: "var(--forge-on-surface-variant)" }}>
-            Citations appear here (Path H / Path W). Handoff-to-action always confirms before L5
-            writes.
-          </p>
-        ) : (
-          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.7 }}>
-            {citations.map((c) => (
-              <li key={c.id}>
-                <StatusChip tone="info">Path {c.path ?? "H"}</StatusChip> {c.title}
-                {c.snippet ? ` — ${c.snippet}` : ""}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <Panel>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 className="forge-card-title">Investigations ({investigationsFixture.length})</h2>
+          </div>
+          <ul style={{ margin: "12px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
+            {investigationsFixture.map((inv) => (
+              <li key={inv.id}>
+                <button
+                  type="button"
+                  onClick={() => selectInv(inv.id)}
+                  style={{
+                    width: "100%",
+                    textAlign: "left",
+                    padding: 12,
+                    borderRadius: 10,
+                    border: "1px solid var(--forge-outline-variant)",
+                    background:
+                      activeInv === inv.id
+                        ? "var(--forge-primary-dim)"
+                        : "var(--forge-surface-container-lowest)",
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}
+                >
+                  <span style={{ display: "block" }}>{inv.title}</span>
+                  <span
+                    style={{
+                      display: "block",
+                      marginTop: 4,
+                      fontWeight: 500,
+                      fontSize: 11,
+                      color: "var(--forge-on-surface-variant)",
+                    }}
+                  >
+                    {inv.summary}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
-        )}
+        </Panel>
 
-        {proposal ? (
-          <div style={{ marginTop: 16 }}>
-            <p style={{ margin: 0, fontWeight: 700 }}>Action handoff</p>
-            <p style={{ margin: "6px 0 0", fontSize: 13 }}>{proposal.summary}</p>
-            {!confirming ? (
-              <div style={{ marginTop: 10 }}>
-                <SecondaryButton onClick={() => setConfirming(true)}>
-                  Preview {proposal.label}
-                </SecondaryButton>
-              </div>
-            ) : (
-              <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <PrimaryButton onClick={confirmHandoff}>Confirm send to L5</PrimaryButton>
-                <GhostButton onClick={() => setConfirming(false)}>Cancel</GhostButton>
-              </div>
-            )}
-          </div>
-        ) : null}
+        <Panel>
+          <h2 className="forge-card-title">Sources & context</h2>
+          {citations.length === 0 ? (
+            <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--forge-on-surface-variant)" }}>
+              Citations appear here (Path H / Path W).
+            </p>
+          ) : (
+            <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontSize: 13, lineHeight: 1.7 }}>
+              {citations.map((c) => (
+                <li key={c.id}>
+                  <StatusChip tone="info">Path {c.path ?? "H"}</StatusChip> {c.title}
+                </li>
+              ))}
+            </ul>
+          )}
 
-        {status ? (
-          <p role="status" style={{ margin: "12px 0 0", fontSize: 12, color: "var(--forge-good)" }}>
-            {status}
-          </p>
-        ) : null}
-      </Panel>
+          {proposal ? (
+            <div style={{ marginTop: 16 }}>
+              <p style={{ margin: 0, fontWeight: 700 }}>Action handoff</p>
+              <p style={{ margin: "6px 0 0", fontSize: 13 }}>{proposal.summary}</p>
+              {!confirming ? (
+                <div style={{ marginTop: 10 }}>
+                  <SecondaryButton onClick={() => setConfirming(true)}>
+                    Preview {proposal.label}
+                  </SecondaryButton>
+                </div>
+              ) : (
+                <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <PrimaryButton onClick={confirmHandoff}>Confirm send to L5</PrimaryButton>
+                  <GhostButton onClick={() => setConfirming(false)}>Cancel</GhostButton>
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          {status ? (
+            <p role="status" style={{ margin: "12px 0 0", fontSize: 12, color: "var(--forge-good)" }}>
+              {status}
+            </p>
+          ) : null}
+        </Panel>
+      </div>
 
       <style>{`
         @media (max-width: 1100px) {

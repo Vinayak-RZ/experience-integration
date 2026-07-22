@@ -19,14 +19,14 @@ export default function IntensityPage() {
       plantName={DEMO_PLANT.plantName}
       role="energy_manager"
       connection={connectionFixture}
-      screenTitle="Intensity / CO₂"
+      screenTitle="Sustainability"
       contextSummary={[
         `MD headroom ${headroom}%`,
         "SEC disclosure · TOD · MD · CMD",
       ]}
       criticalAlarmCount={demoCriticalAlarmCount()}
     >
-      <PageHead eyebrow="Analytics" title="Intensity, TOD & MD" />
+      <PageHead eyebrow="Sustainability" title="Intensity, TOD & CO₂" />
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <TodMdBoard />
         <IntensityBoard />

@@ -58,15 +58,16 @@
   --forge-outline: #8f706b;
   --forge-outline-variant: #e3beb8;
 
-  /* Typography */
+  /* Typography — Plus Jakarta Sans display, Public Sans body */
   --forge-font-display: "Plus Jakarta Sans", system-ui, sans-serif;
-  --forge-font-body: "Inter", system-ui, sans-serif;
+  --forge-font-body: "Public Sans", system-ui, sans-serif;
   --forge-size-display: 2rem;
   --forge-size-headline: 1.5rem;
   --forge-size-title: 1.125rem;
-  --forge-size-body: 1rem;
-  --forge-size-label: 0.75rem;
+  --forge-size-body: 0.9375rem;
+  --forge-size-label: 0.6875rem;
   --forge-leading-body: 1.5;
+  --forge-size-num: clamp(1.5rem, 2vw, 1.875rem);
 
   /* Spacing (4px base) */
   --forge-space-xs: 4px;
@@ -79,11 +80,13 @@
   --forge-margin-desktop: 40px;
   --forge-content-max: 1440px;
 
-  /* Radius */
+  /* Radius — dashboard craft: cards 12px, controls 8px */
   --forge-radius-sm: 0.25rem;
   --forge-radius-md: 0.5rem;
-  --forge-radius-lg: 1rem;
+  --forge-radius-card: 12px;
+  --forge-radius-lg: 12px;
   --forge-radius-xl: 1.5rem;
+  --forge-radius-pill: 999px;
 
   /* Motion — calm, reduce under prefers-reduced-motion */
   --forge-motion-fast: 120ms;
@@ -92,8 +95,10 @@
   --forge-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 
   /* Elevation — restrained; no multi-layer glow */
-  --forge-shadow-panel: 0 8px 24px rgba(25, 28, 26, 0.08);
+  --forge-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --forge-shadow-panel: var(--forge-shadow-card);
   --forge-shadow-sheet: 0 -4px 24px rgba(25, 28, 26, 0.12);
+  --forge-shadow-hero: 0 8px 32px rgba(247, 84, 64, 0.14);
 
   /* Status text labels (charter: never color-only) */
   --forge-status-critical-label: "Critical";

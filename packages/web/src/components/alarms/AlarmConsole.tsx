@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Alarm } from "@/lib/types";
+import { assetsFixture } from "@/fixtures/demo";
+import {
+  alarmsFixture,
+  prescriptionsFixture,
+  DEMO_PLANT,
+} from "@/fixtures/demo";
+import { buildEvidencePack, resolveEvidenceScope } from "@/lib/evidence";
 import {
   GhostButton,
   Panel,
@@ -10,6 +17,7 @@ import {
   SecondaryButton,
   StatusChip,
   ToastRegion,
+  DataTable,
 } from "@/components/ui/primitives";
 import { RouteStateView } from "@/components/states/RouteStateView";
 import { resolveRouteState } from "@/lib/route-state";
@@ -27,13 +35,15 @@ const severityTone = {
   info: "info",
 } as const;
 
-export function AlarmConsole({
-  initial,
-  onOpenEvidence,
-}: {
-  initial: Alarm[];
-  onOpenEvidence?: (alarm: Alarm) => void;
-}) {
+const ACTION_LABEL: Record<Exclude<AlarmAction, "evidence">, string> = {
+  ack: "Acknowledge",
+  unack: "Unacknowledge",
+  escalate: "Escalate",
+  silence: "Silence",
+  unsilence: "Unsilence",
+};
+
+export function AlarmConsole({ initial }: { initial: Alarm[] }) {
   const [alarms, setAlarms] = useState(initial);
   const [selected, setSelected] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
@@ -45,17 +55,45 @@ export function AlarmConsole({
   const current = open[selected] ?? open[0];
   const actions = current ? actionsForState(current.state) : [];
 
+  const evidenceRows = useMemo(() => {
+    if (!current) return [];
+    const asset = assetsFixture.find((a) => a.id === current.assetId);
+    const scope = resolveEvidenceScope({
+      plantId: DEMO_PLANT.plantId,
+      alarmId: current.id,
+      alarms: alarmsFixture,
+      prescriptions: prescriptionsFixture,
+    });
+    const pack = buildEvidencePack(scope, { baselineAvailable: true });
+    return [
+      {
+        id: "load",
+        metric: "Load",
+        value: asset ? `${asset.loadPct}%` : "—",
+        note: current.summary,
+      },
+      {
+        id: "kwh",
+        metric: "MTD energy",
+        value: asset ? `${Math.round(asset.kwhMtd / 1000)} MWh` : "—",
+        note: pack.lineage.sources.join(", "),
+      },
+      {
+        id: "raised",
+        metric: "Raised",
+        value: current.raisedAt.slice(11, 16),
+        note: `Finding ${current.findingId ?? "n/a"}`,
+      },
+    ];
+  }, [current]);
+
   function runAction(action: AlarmAction) {
     if (!current) return;
-    if (action === "evidence") {
-      onOpenEvidence?.(current);
-      window.location.href = `/evidence?alarmId=${encodeURIComponent(current.id)}`;
-      return;
-    }
+    if (action === "evidence") return;
     setAlarms((rows) =>
       rows.map((a) => (a.id === current.id ? applyAlarmAction(a, action) : a)),
     );
-    setToast(`${action} sent for ${current.assetLabel}`);
+    setToast(`${ACTION_LABEL[action]} — ${current.assetLabel}`);
   }
 
   useEffect(() => {
@@ -71,14 +109,10 @@ export function AlarmConsole({
       } else if (e.key === "a" && current && actions.includes("ack")) {
         e.preventDefault();
         runAction("ack");
-      } else if (e.key === "e" && current) {
-        e.preventDefault();
-        runAction("evidence");
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // ponytail: rebind when selection/actions change
   });
 
   useEffect(() => {
@@ -100,7 +134,7 @@ export function AlarmConsole({
   return (
     <div data-alarm-console>
       <div
-        style={{ display: "grid", gridTemplateColumns: "minmax(240px, 1fr) 1.4fr", gap: 16 }}
+        style={{ display: "grid", gridTemplateColumns: "minmax(260px, 1fr) 1.5fr", gap: 16 }}
         className="alarm-grid"
       >
         <Panel style={{ padding: 0, overflow: "hidden" }}>
@@ -123,7 +157,7 @@ export function AlarmConsole({
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <strong style={{ fontSize: 13 }}>{a.assetLabel}</strong>
-                    <StatusChip tone={severityTone[a.severity]}>{a.severity}</StatusChip>
+                    <StatusChip tone={severityTone[a.severity]} />
                   </div>
                   <p
                     style={{
@@ -141,15 +175,8 @@ export function AlarmConsole({
         </Panel>
 
         {current ? (
-          <Panel data-alarm-detail={current.id}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 12,
-                flexWrap: "wrap",
-              }}
-            >
+          <Panel data-alarm-detail={current.id} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <h2 style={{ margin: 0, fontFamily: "var(--forge-font-display)", fontSize: 20 }}>
                   {current.assetLabel}
@@ -161,26 +188,51 @@ export function AlarmConsole({
               </div>
               <StatusChip tone={severityTone[current.severity]}>{current.state}</StatusChip>
             </div>
+
+            <div>
+              <p className="forge-eyebrow">Evidence snapshot</p>
+              <DataTable
+                caption="Alarm evidence"
+                columns={[
+                  { key: "metric", header: "Metric" },
+                  { key: "value", header: "Value" },
+                  { key: "note", header: "Note" },
+                ]}
+                rows={evidenceRows}
+              />
+            </div>
+
             <div
               className="alarm-actions-desktop"
-              style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}
+              style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
             >
-              {actions.includes("ack") ? (
-                <PrimaryButton onClick={() => runAction("ack")}>Ack</PrimaryButton>
-              ) : null}
-              {actions.includes("escalate") ? (
-                <SecondaryButton onClick={() => runAction("escalate")}>Escalate</SecondaryButton>
-              ) : null}
-              {actions.includes("silence") ? (
-                <GhostButton onClick={() => runAction("silence")}>Silence</GhostButton>
-              ) : null}
-              {actions.includes("unsilence") ? (
-                <GhostButton onClick={() => runAction("unsilence")}>Unsilence</GhostButton>
-              ) : null}
-              <GhostButton onClick={() => runAction("evidence")}>Evidence</GhostButton>
+              {actions
+                .filter((a): a is Exclude<AlarmAction, "evidence"> => a !== "evidence")
+                .map((action) => {
+                  const label = ACTION_LABEL[action];
+                  if (action === "ack") {
+                    return (
+                      <PrimaryButton key={action} onClick={() => runAction(action)}>
+                        {label}
+                      </PrimaryButton>
+                    );
+                  }
+                  if (action === "escalate") {
+                    return (
+                      <SecondaryButton key={action} onClick={() => runAction(action)}>
+                        {label}
+                      </SecondaryButton>
+                    );
+                  }
+                  return (
+                    <GhostButton key={action} onClick={() => runAction(action)}>
+                      {label}
+                    </GhostButton>
+                  );
+                })}
               {current.relatedPrescriptionId ? (
                 <Link
-                  href={`/prescriptions?focus=${current.relatedPrescriptionId}`}
+                  href={`/prescriptions/${current.relatedPrescriptionId}`}
                   style={{
                     minHeight: 48,
                     display: "inline-flex",
@@ -191,7 +243,7 @@ export function AlarmConsole({
                     fontWeight: 700,
                   }}
                 >
-                  Open Rx
+                  Open prescription
                 </Link>
               ) : null}
               <Link
@@ -209,33 +261,29 @@ export function AlarmConsole({
                 Full detail
               </Link>
             </div>
-            <p style={{ margin: "16px 0 0", fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
-              Keyboard: j/k move · a ack · e evidence. Lifecycle truth lives in L5.
+            <p style={{ margin: 0, fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
+              Keyboard: j/k move · a acknowledge. Lifecycle truth lives in L5.
             </p>
           </Panel>
         ) : null}
       </div>
 
-      <nav
-        aria-label="Mobile alarm actions"
-        className="alarm-mobile-bar"
-        data-mobile-alarm-bar
-      >
+      <nav aria-label="Mobile alarm actions" className="alarm-mobile-bar" data-mobile-alarm-bar>
         {actions.includes("ack") ? (
-          <PrimaryButton onClick={() => runAction("ack")}>Ack</PrimaryButton>
+          <PrimaryButton onClick={() => runAction("ack")}>Acknowledge</PrimaryButton>
+        ) : null}
+        {actions.includes("unack") ? (
+          <GhostButton onClick={() => runAction("unack")}>Unacknowledge</GhostButton>
         ) : null}
         {actions.includes("escalate") ? (
           <SecondaryButton onClick={() => runAction("escalate")}>Escalate</SecondaryButton>
         ) : null}
-        <GhostButton onClick={() => runAction("evidence")}>Evidence</GhostButton>
       </nav>
 
       <ToastRegion message={toast} tone="good" />
 
       <style>{`
-        .alarm-mobile-bar {
-          display: none;
-        }
+        .alarm-mobile-bar { display: none; }
         @media (max-width: 899px) {
           .alarm-grid { grid-template-columns: 1fr !important; }
           .alarm-actions-desktop { display: none !important; }
@@ -249,7 +297,7 @@ export function AlarmConsole({
             margin-top: 12px;
             background: var(--forge-surface-container-lowest);
             border: 1px solid var(--forge-outline-variant);
-            border-radius: var(--forge-radius-md);
+            border-radius: 12px;
             flex-wrap: wrap;
           }
         }

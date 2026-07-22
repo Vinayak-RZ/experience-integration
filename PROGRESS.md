@@ -38,6 +38,13 @@ Jaipur Works Auto demo is thorough across all Forge screens via
 keys, webhooks, report jobs, investigations, energy KPIs). Today tiles derive
 from the same helpers so shell banners stay consistent.
 
+## Visual + IA redesign (2026-07-22)
+
+Branch `cursor/l6-full-visual-redesign`: Overview composition, icon nav +
+collapse, Tools hub, Assignments routing screen, expandable Rx/alarms with
+inline evidence, Script-style Ask Analyst, 2D energy twin on Plant Map.
+Gates: `pnpm --filter @stamped/l6-web typecheck` + `test` (65 passing).
+
 ## Documentation (2026-07-22)
 
 Root [`README.md`](README.md) is the extensive onboarding / reference manual

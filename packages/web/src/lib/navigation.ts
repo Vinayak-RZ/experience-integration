@@ -9,28 +9,39 @@ export type NavItem = {
   tier: "primary" | "reveal";
 };
 
+/**
+ * Professional IA — Evidence is deep-link only (not listed).
+ * plant_map shares equipment route with ?view=map.
+ */
 export const NAV_ITEMS: NavItem[] = [
-  { key: "today", href: "/", label: "Today", permission: "route:today", tier: "primary" },
+  { key: "today", href: "/", label: "Overview", permission: "route:today", tier: "primary" },
+  {
+    key: "energy",
+    href: "/energy",
+    label: "Energy Analytics",
+    permission: "route:energy",
+    tier: "primary",
+  },
+  {
+    key: "equipment",
+    href: "/equipment",
+    label: "Machine Health",
+    permission: "route:equipment",
+    tier: "primary",
+  },
   { key: "alarms", href: "/alarms", label: "Alarms", permission: "route:alarms", tier: "primary" },
   {
     key: "prescriptions",
     href: "/prescriptions",
-    label: "Prescriptions",
+    label: "AI Prescriptions",
     permission: "route:prescriptions",
     tier: "primary",
   },
   {
-    key: "evidence",
-    href: "/evidence",
-    label: "Evidence",
-    permission: "route:evidence",
-    tier: "primary",
-  },
-  {
-    key: "analyst",
-    href: "/analyst",
-    label: "Analyst",
-    permission: "route:analyst",
+    key: "plant_map",
+    href: "/equipment?view=map",
+    label: "Plant Map",
+    permission: "route:equipment",
     tier: "primary",
   },
   {
@@ -41,25 +52,39 @@ export const NAV_ITEMS: NavItem[] = [
     tier: "primary",
   },
   {
-    key: "energy",
-    href: "/energy",
-    label: "Energy",
-    permission: "route:energy",
-    tier: "reveal",
-  },
-  {
-    key: "equipment",
-    href: "/equipment",
-    label: "Equipment",
-    permission: "route:equipment",
-    tier: "reveal",
-  },
-  {
     key: "intensity",
     href: "/intensity",
-    label: "Intensity / CO₂",
+    label: "Sustainability",
     permission: "route:intensity",
-    tier: "reveal",
+    tier: "primary",
+  },
+  {
+    key: "analyst",
+    href: "/analyst",
+    label: "Ask Analyst",
+    permission: "route:analyst",
+    tier: "primary",
+  },
+  {
+    key: "tools",
+    href: "/tools",
+    label: "Tools",
+    permission: "route:today",
+    tier: "primary",
+  },
+  {
+    key: "assignments",
+    href: "/settings/assignments",
+    label: "Assignments",
+    permission: "route:admin",
+    tier: "primary",
+  },
+  {
+    key: "admin",
+    href: "/settings/admin",
+    label: "Settings",
+    permission: "route:admin",
+    tier: "primary",
   },
   {
     key: "integrations",
@@ -69,10 +94,10 @@ export const NAV_ITEMS: NavItem[] = [
     tier: "reveal",
   },
   {
-    key: "admin",
-    href: "/settings/admin",
-    label: "Admin",
-    permission: "route:admin",
+    key: "evidence",
+    href: "/evidence",
+    label: "Evidence",
+    permission: "route:evidence",
     tier: "reveal",
   },
 ];
@@ -85,6 +110,7 @@ const ROLE_ROUTES: Record<Role, readonly string[]> = {
     "route:prescriptions",
     "route:evidence",
     "route:analyst",
+    "route:equipment",
   ],
   supervisor: [
     "route:today",
@@ -93,6 +119,8 @@ const ROLE_ROUTES: Record<Role, readonly string[]> = {
     "route:evidence",
     "route:analyst",
     "route:reports",
+    "route:energy",
+    "route:equipment",
   ],
   plant_head: [
     "route:today",
@@ -151,6 +179,7 @@ export function canAccessRoute(role: Role, permission: string): boolean {
 export const OPS_INVARIANTS: readonly NavKey[] = ["alarms", "prescriptions"];
 
 export const NAV_PIN_STORAGE_KEY = "stamped.l6.nav.pins";
+export const NAV_COLLAPSE_STORAGE_KEY = "stamped.l6.nav.collapsed";
 
 export function navForRole(role: Role): {
   primary: NavItem[];
@@ -204,6 +233,19 @@ export function writePins(
   storage.setItem(NAV_PIN_STORAGE_KEY, JSON.stringify(pins));
 }
 
+export function readCollapsed(storage: Pick<Storage, "getItem"> | null | undefined): boolean {
+  if (!storage) return false;
+  return storage.getItem(NAV_COLLAPSE_STORAGE_KEY) === "1";
+}
+
+export function writeCollapsed(
+  storage: Pick<Storage, "setItem"> | null | undefined,
+  collapsed: boolean,
+): void {
+  if (!storage) return;
+  storage.setItem(NAV_COLLAPSE_STORAGE_KEY, collapsed ? "1" : "0");
+}
+
 /**
  * Progressive reveal with optional pinned tools promoted into primary.
  * Alarms/Prescriptions stay primary whenever the role allows them.
@@ -218,7 +260,6 @@ export function composeNav(
   const pinned = base.reveal.filter((i) => pinSet.has(i.key));
   const remainingReveal = base.reveal.filter((i) => !pinSet.has(i.key));
 
-  // Primary always starts from role primary (includes ops invariants when granted)
   return {
     primary: [...base.primary, ...pinned],
     reveal: remainingReveal,
@@ -233,7 +274,7 @@ export function togglePin(role: Role, pins: readonly NavKey[], key: NavKey): Nav
   return sanitizePins(role, [...set]);
 }
 
-/** Mobile bottom bar — first three primary + More. */
+/** Mobile bottom bar — first three primary + More opens Tools. */
 export function mobileDock(role: Role, pins: readonly NavKey[] = []): NavItem[] {
   return composeNav(role, pins).primary.slice(0, 3);
 }

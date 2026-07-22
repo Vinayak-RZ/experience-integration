@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Prescription, PrescriptionLane } from "@/lib/types";
 import { claimBadgeLabel, formatInr } from "@/lib/format";
+import { assetsFixture, alarmsFixture, prescriptionsFixture, DEMO_PLANT } from "@/fixtures/demo";
+import { buildEvidencePack, resolveEvidenceScope } from "@/lib/evidence";
+import type { NotifyPerson } from "@/fixtures/assignments";
+import { AssignAssigneeSheet } from "@/components/assignments/AssignAssigneeSheet";
+import { ChevronDown, ChevronRight } from "@/components/ui/icons";
 import {
+  DataTable,
   GhostButton,
   Panel,
   PrimaryButton,
@@ -28,9 +34,20 @@ const laneLabel: Record<PrescriptionLane, string> = {
   closed: "Closed",
 };
 
+function areaForRx(rx: Prescription): { area?: string; assetId?: string } {
+  const hit = assetsFixture.find(
+    (a) =>
+      rx.title.toLowerCase().includes(a.label.toLowerCase().split(" ")[0]!) ||
+      rx.why.toLowerCase().includes(a.label.toLowerCase()),
+  );
+  return { area: hit?.area, assetId: hit?.id };
+}
+
 export function PrescriptionQueue({ initial }: { initial: Prescription[] }) {
   const [rows, setRows] = useState(initial);
   const [lane, setLane] = useState<PrescriptionLane>("needs_review");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [assignFor, setAssignFor] = useState<Prescription | null>(null);
   const [pendingAction, setPendingAction] = useState<{
     id: string;
     action: RxAction;
@@ -57,60 +74,38 @@ export function PrescriptionQueue({ initial }: { initial: Prescription[] }) {
 
   function confirmReasoned() {
     if (!pendingAction || !reason.trim()) return;
-    const { next, rollback } = optimisticRxUpdate(
-      rows,
-      pendingAction.id,
-      pendingAction.action,
-    );
+    const { next } = optimisticRxUpdate(rows, pendingAction.id, pendingAction.action);
     setRows(next);
     setPendingAction(null);
     setReason("");
     setToast(`${pendingAction.action} confirmed`);
-    // ponytail: no live L5 yet — rollback helper kept for failed upstream wiring
-    void rollback;
   }
 
-  function rollbackLast(snapshot: Prescription[]) {
-    setRows(snapshot);
-    setToast("Action rolled back");
+  function onAssigned(person: NotifyPerson) {
+    if (!assignFor) return;
+    const { next } = optimisticRxUpdate(rows, assignFor.id, "assign");
+    setRows(next);
+    setToast(`Assigned to ${person.name} — WhatsApp notify queued (demo)`);
+    setAssignFor(null);
+    setExpanded(assignFor.id);
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }} data-rx-queue>
       <Panel style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <p style={{ margin: 0, fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
-            Addressable open queue
-          </p>
-          <p
-            className="tabular"
-            style={{
-              margin: "4px 0 0",
-              fontFamily: "var(--forge-font-display)",
-              fontWeight: 800,
-              fontSize: 28,
-            }}
-          >
-            {formatInr(openInr)}/mo
-          </p>
+          <p className="forge-eyebrow">Addressable open queue</p>
+          <p className="forge-num-display tabular">{formatInr(openInr)}/mo</p>
         </div>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }} role="tablist" aria-label="Rx lanes">
+        <div className="forge-tabs" role="tablist" aria-label="Rx lanes">
           {LANES.map((l) => (
             <button
               key={l}
               type="button"
               role="tab"
+              className="forge-tabs__btn"
               onClick={() => setLane(l)}
               aria-selected={lane === l}
-              style={{
-                minHeight: 40,
-                padding: "0 12px",
-                borderRadius: 8,
-                fontWeight: 600,
-                fontSize: 13,
-                background: lane === l ? "var(--forge-secondary)" : "var(--forge-surface-container)",
-                color: lane === l ? "#fff" : "var(--forge-on-surface)",
-              }}
             >
               {laneLabel[l]}
             </button>
@@ -125,103 +120,192 @@ export function PrescriptionQueue({ initial }: { initial: Prescription[] }) {
       ) : (
         sorted.map((rx) => {
           const badge = claimBadgeLabel(rx.verificationStatus);
+          const isOpen = expanded === rx.id;
+          const ctx = areaForRx(rx);
+          const scope = resolveEvidenceScope({
+            plantId: DEMO_PLANT.plantId,
+            rxId: rx.id,
+            alarms: alarmsFixture,
+            prescriptions: prescriptionsFixture,
+          });
+          const pack = buildEvidencePack(scope, { baselineAvailable: true });
+          const evidenceRows = [
+            {
+              id: "why",
+              unit: "Finding",
+              value: rx.why,
+              comment: pack.lineage.ruleId,
+            },
+            {
+              id: "conf",
+              unit: "Confidence",
+              value: `${Math.round(rx.confidence * 100)}%`,
+              comment: pack.lineage.sources.slice(0, 2).join(", "),
+            },
+            {
+              id: "impact",
+              unit: "Impact",
+              value: `${formatInr(rx.impactInrPerMonth)}/mo`,
+              comment: claimBadgeLabel(rx.verificationStatus ?? "modeled").label,
+            },
+          ];
+
           return (
-            <Panel key={rx.id} as="article" data-rx-id={rx.id}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                <div>
-                  <h3 style={{ margin: 0, fontFamily: "var(--forge-font-display)", fontSize: 17 }}>
-                    <Link href={`/prescriptions/${rx.id}`}>{rx.title}</Link>
-                  </h3>
-                  <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--forge-on-surface-variant)" }}>
-                    {rx.why}
-                  </p>
-                  <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
-                    Due {rx.dueAt} · Owner {rx.ownerRole.replaceAll("_", " ")}
-                  </p>
-                </div>
-                <p
-                  className="tabular"
-                  style={{
-                    margin: 0,
-                    fontFamily: "var(--forge-font-display)",
-                    fontWeight: 800,
-                    fontSize: 20,
-                  }}
-                >
-                  {formatInr(rx.impactInrPerMonth)}/mo
-                </p>
-              </div>
-
-              <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
-                <StatusChip tone="info">{Math.round(rx.confidence * 100)}% confidence</StatusChip>
-                {rx.verificationStatus ? (
-                  <StatusChip tone={badge.tone}>{badge.label}</StatusChip>
-                ) : null}
-              </div>
-
-              {rx.opportunityCost ? (
-                <p style={{ margin: "12px 0 0", fontSize: 12, color: "var(--forge-warning)" }}>
-                  Delay cost {formatInr(rx.opportunityCost.modeledInr)} over{" "}
-                  {rx.opportunityCost.delayDays} days. Modeled — not bill-verified.
-                </p>
-              ) : null}
-
-              {lane === "needs_review" || lane === "active" ? (
-                <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-                  {lane === "needs_review" ? (
-                    <SecondaryButton onClick={() => run(rx.id, "assign")}>Assign me</SecondaryButton>
-                  ) : null}
-                  <PrimaryButton onClick={() => run(rx.id, "done")}>Mark done</PrimaryButton>
-                  <GhostButton onClick={() => run(rx.id, "defer")}>Defer…</GhostButton>
-                  <GhostButton onClick={() => run(rx.id, "reject")}>Reject…</GhostButton>
-                  <Link
-                    href={`/evidence?rxId=${rx.id}`}
-                    style={{
-                      minHeight: 48,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      padding: "0 14px",
-                      border: "1px solid var(--forge-outline-variant)",
-                      borderRadius: "var(--forge-radius-md)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Show proof
-                  </Link>
-                </div>
-              ) : null}
-
-              {pendingAction?.id === rx.id ? (
-                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-                  <label htmlFor={`reason-${rx.id}`} style={{ fontSize: 12, fontWeight: 600 }}>
-                    {pendingAction.action} reason (required)
-                  </label>
-                  <textarea
-                    id={`reason-${rx.id}`}
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    rows={2}
-                    style={{
-                      width: "100%",
-                      borderRadius: 8,
-                      border: "1px solid var(--forge-outline-variant)",
-                      padding: 10,
-                      fontFamily: "inherit",
-                    }}
-                  />
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <PrimaryButton onClick={confirmReasoned} disabled={!reason.trim()}>
-                      Confirm {pendingAction.action}
-                    </PrimaryButton>
-                    <GhostButton
-                      onClick={() => {
-                        setPendingAction(null);
-                        setReason("");
+            <Panel key={rx.id} as="article" data-rx-id={rx.id} style={{ padding: 0 }}>
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                onClick={() => setExpanded(isOpen ? null : rx.id)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  padding: 16,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  flexWrap: "wrap",
+                  alignItems: "flex-start",
+                  background: "transparent",
+                }}
+              >
+                <div style={{ display: "flex", gap: 10, flex: 1, minWidth: 0 }}>
+                  <span style={{ marginTop: 4, color: "var(--forge-on-surface-variant)" }}>
+                    {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                  </span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                      <StatusChip tone={rx.confidence >= 0.8 ? "good" : "warning"}>
+                        {Math.round(rx.confidence * 100)}%
+                      </StatusChip>
+                      {rx.verificationStatus ? (
+                        <StatusChip tone={badge.tone}>{badge.label}</StatusChip>
+                      ) : null}
+                    </div>
+                    <h3
+                      style={{
+                        margin: "8px 0 0",
+                        fontFamily: "var(--forge-font-display)",
+                        fontSize: 16,
                       }}
                     >
-                      Cancel
-                    </GhostButton>
+                      {rx.title}
+                    </h3>
+                    <p
+                      style={{
+                        margin: "6px 0 0",
+                        fontSize: 13,
+                        color: "var(--forge-on-surface-variant)",
+                      }}
+                    >
+                      {ctx.area ?? "Plant"} · Due {rx.dueAt.slice(0, 10)}
+                    </p>
                   </div>
+                </div>
+                <p className="forge-num-display tabular" style={{ fontSize: 20 }}>
+                  {formatInr(rx.impactInrPerMonth)}
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--forge-on-surface-variant)" }}>
+                    /mo
+                  </span>
+                </p>
+              </button>
+
+              {isOpen ? (
+                <div
+                  style={{
+                    padding: "0 16px 16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 14,
+                    borderTop: "1px solid var(--forge-outline-variant)",
+                  }}
+                >
+                  <div>
+                    <p className="forge-eyebrow" style={{ marginTop: 14 }}>
+                      Case description & data evidence
+                    </p>
+                    <p style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.5 }}>{rx.why}</p>
+                    <div style={{ marginTop: 12 }}>
+                      <DataTable
+                        caption="Prescription evidence"
+                        columns={[
+                          { key: "unit", header: "Unit" },
+                          { key: "value", header: "Value" },
+                          { key: "comment", header: "Comment" },
+                        ]}
+                        rows={evidenceRows}
+                      />
+                    </div>
+                  </div>
+
+                  {rx.opportunityCost ? (
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--forge-warning)" }}>
+                      Delay cost {formatInr(rx.opportunityCost.modeledInr)} over{" "}
+                      {rx.opportunityCost.delayDays} days. Modeled — not bill-verified.
+                    </p>
+                  ) : null}
+
+                  {(lane === "needs_review" || lane === "active") && (
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {lane === "needs_review" ? (
+                        <SecondaryButton
+                          onClick={() => setAssignFor(rx)}
+                        >
+                          Assign…
+                        </SecondaryButton>
+                      ) : null}
+                      <PrimaryButton onClick={() => run(rx.id, "done")}>Mark done</PrimaryButton>
+                      <GhostButton onClick={() => run(rx.id, "defer")}>Defer…</GhostButton>
+                      <GhostButton onClick={() => run(rx.id, "reject")}>Reject…</GhostButton>
+                      <Link
+                        href={`/prescriptions/${rx.id}`}
+                        style={{
+                          minHeight: 48,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          padding: "0 14px",
+                          border: "1px solid var(--forge-outline-variant)",
+                          borderRadius: "var(--forge-radius-md)",
+                          fontWeight: 700,
+                        }}
+                      >
+                        Full case
+                      </Link>
+                    </div>
+                  )}
+
+                  {pendingAction?.id === rx.id ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <label htmlFor={`reason-${rx.id}`} style={{ fontSize: 12, fontWeight: 600 }}>
+                        {pendingAction.action} reason (required)
+                      </label>
+                      <textarea
+                        id={`reason-${rx.id}`}
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        rows={2}
+                        style={{
+                          width: "100%",
+                          borderRadius: 8,
+                          border: "1px solid var(--forge-outline-variant)",
+                          padding: 10,
+                          fontFamily: "inherit",
+                        }}
+                      />
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <PrimaryButton onClick={confirmReasoned} disabled={!reason.trim()}>
+                          Confirm {pendingAction.action}
+                        </PrimaryButton>
+                        <GhostButton
+                          onClick={() => {
+                            setPendingAction(null);
+                            setReason("");
+                          }}
+                        >
+                          Cancel
+                        </GhostButton>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </Panel>
@@ -229,16 +313,16 @@ export function PrescriptionQueue({ initial }: { initial: Prescription[] }) {
         })
       )}
 
+      <AssignAssigneeSheet
+        open={!!assignFor}
+        onClose={() => setAssignFor(null)}
+        title={assignFor?.title ?? "Assign"}
+        area={assignFor ? areaForRx(assignFor).area : undefined}
+        assetId={assignFor ? areaForRx(assignFor).assetId : undefined}
+        onAssign={onAssigned}
+      />
+
       <ToastRegion message={toast} tone="good" />
-      {/* expose rollback for tests / future upstream failure path */}
-      <button
-        type="button"
-        className="sr-only"
-        data-rx-rollback
-        onClick={() => rollbackLast(initial)}
-      >
-        Rollback
-      </button>
     </div>
   );
 }

@@ -73,28 +73,38 @@ export function StatusChip({
 export function Panel({
   children,
   style,
+  className,
   as: Tag = "section",
   role,
   "aria-busy": ariaBusy,
   "aria-label": ariaLabel,
+  onClick,
+  "aria-expanded": ariaExpanded,
 }: {
   children: ReactNode;
   style?: CSSProperties;
+  className?: string;
   as?: "section" | "div" | "article";
   role?: string;
   "aria-busy"?: boolean;
   "aria-label"?: string;
+  onClick?: () => void;
+  "aria-expanded"?: boolean;
 }) {
   return (
     <Tag
       role={role}
       aria-busy={ariaBusy}
       aria-label={ariaLabel}
+      aria-expanded={ariaExpanded}
+      onClick={onClick}
+      className={className}
       style={{
         background: "var(--forge-surface-container-lowest)",
         border: "1px solid var(--forge-outline-variant)",
-        borderRadius: "var(--forge-radius-lg)",
-        padding: 24,
+        borderRadius: "var(--forge-radius-card)",
+        padding: 20,
+        boxShadow: "var(--forge-shadow-card)",
         ...style,
       }}
     >
@@ -123,20 +133,7 @@ export function PageHead({
       }}
     >
       <div>
-        {eyebrow ? (
-          <p
-            style={{
-              margin: 0,
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "var(--forge-on-surface-variant)",
-            }}
-          >
-            {eyebrow}
-          </p>
-        ) : null}
+        {eyebrow ? <p className="forge-eyebrow">{eyebrow}</p> : null}
         <h1
           style={{
             margin: "4px 0 0",
