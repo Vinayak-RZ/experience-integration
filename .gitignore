@@ -11,3 +11,7 @@ packages/*/out/
 .env
 .env.*
 !.env.example
+packages/web/test-results/
+packages/web/playwright-report/
+infra/cdk.out/
+infra/dist/
