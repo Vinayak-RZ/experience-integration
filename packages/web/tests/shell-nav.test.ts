@@ -5,7 +5,14 @@ import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, it } from "node:test";
-import { canAccessRoute, mobileDock, navForRole } from "../src/lib/navigation.js";
+import {
+  canAccessRoute,
+  composeNav,
+  mobileDock,
+  navForRole,
+  sanitizePins,
+  togglePin,
+} from "../src/lib/navigation.js";
 import { AppShell } from "../src/components/shell/AppShell.js";
 
 const root = dirname(fileURLToPath(import.meta.url));
@@ -33,6 +40,23 @@ describe("role-aware navigation", () => {
 
   it("keeps mobile dock to three primary destinations", () => {
     assert.equal(mobileDock("plant_head").length, 3);
+  });
+
+  it("keeps alarms and prescriptions as ops invariants in primary", () => {
+    const { primary } = composeNav("plant_head", ["energy"]);
+    assert.ok(primary.some((i) => i.key === "alarms"));
+    assert.ok(primary.some((i) => i.key === "prescriptions"));
+    assert.ok(primary.some((i) => i.key === "energy"));
+    assert.deepEqual(togglePin("supervisor", [], "alarms"), []);
+    assert.deepEqual(sanitizePins("cfo", ["alarms", "energy"]), []);
+  });
+
+  it("promotes sanitized pins and drops unauthorized keys", () => {
+    const pins = sanitizePins("plant_head", ["energy", "admin", "alarms", "energy"]);
+    assert.deepEqual(pins, ["energy"]);
+    const { primary, reveal } = composeNav("plant_head", pins);
+    assert.ok(primary.some((i) => i.key === "energy"));
+    assert.equal(reveal.some((i) => i.key === "energy"), false);
   });
 });
 

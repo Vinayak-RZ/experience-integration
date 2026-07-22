@@ -147,6 +147,11 @@ export function canAccessRoute(role: Role, permission: string): boolean {
   return ROLE_ROUTES[role]?.includes(permission) === true;
 }
 
+/** Ops invariants — always primary when the role can access them; never unpin. */
+export const OPS_INVARIANTS: readonly NavKey[] = ["alarms", "prescriptions"];
+
+export const NAV_PIN_STORAGE_KEY = "stamped.l6.nav.pins";
+
 export function navForRole(role: Role): {
   primary: NavItem[];
   reveal: NavItem[];
@@ -158,7 +163,77 @@ export function navForRole(role: Role): {
   };
 }
 
+export function isOpsInvariant(key: NavKey): boolean {
+  return OPS_INVARIANTS.includes(key);
+}
+
+/** Sanitize pins: role-gated, reveal-tier only, never ops invariants. */
+export function sanitizePins(role: Role, pins: readonly NavKey[]): NavKey[] {
+  const { reveal } = navForRole(role);
+  const revealKeys = new Set(reveal.map((i) => i.key));
+  const seen = new Set<NavKey>();
+  const out: NavKey[] = [];
+  for (const key of pins) {
+    if (isOpsInvariant(key)) continue;
+    if (!revealKeys.has(key)) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
+}
+
+export function readPins(storage: Pick<Storage, "getItem"> | null | undefined): NavKey[] {
+  if (!storage) return [];
+  try {
+    const raw = storage.getItem(NAV_PIN_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((k): k is NavKey => typeof k === "string") as NavKey[];
+  } catch {
+    return [];
+  }
+}
+
+export function writePins(
+  storage: Pick<Storage, "setItem"> | null | undefined,
+  pins: readonly NavKey[],
+): void {
+  if (!storage) return;
+  storage.setItem(NAV_PIN_STORAGE_KEY, JSON.stringify(pins));
+}
+
+/**
+ * Progressive reveal with optional pinned tools promoted into primary.
+ * Alarms/Prescriptions stay primary whenever the role allows them.
+ */
+export function composeNav(
+  role: Role,
+  pins: readonly NavKey[] = [],
+): { primary: NavItem[]; reveal: NavItem[] } {
+  const base = navForRole(role);
+  const clean = sanitizePins(role, pins);
+  const pinSet = new Set(clean);
+  const pinned = base.reveal.filter((i) => pinSet.has(i.key));
+  const remainingReveal = base.reveal.filter((i) => !pinSet.has(i.key));
+
+  // Primary always starts from role primary (includes ops invariants when granted)
+  return {
+    primary: [...base.primary, ...pinned],
+    reveal: remainingReveal,
+  };
+}
+
+export function togglePin(role: Role, pins: readonly NavKey[], key: NavKey): NavKey[] {
+  if (isOpsInvariant(key)) return sanitizePins(role, pins);
+  const set = new Set(sanitizePins(role, pins));
+  if (set.has(key)) set.delete(key);
+  else set.add(key);
+  return sanitizePins(role, [...set]);
+}
+
 /** Mobile bottom bar — first three primary + More. */
-export function mobileDock(role: Role): NavItem[] {
-  return navForRole(role).primary.slice(0, 3);
+export function mobileDock(role: Role, pins: readonly NavKey[] = []): NavItem[] {
+  return composeNav(role, pins).primary.slice(0, 3);
 }

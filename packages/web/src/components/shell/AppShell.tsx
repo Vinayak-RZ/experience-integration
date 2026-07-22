@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ConnectionStatus, NavKey, Role } from "@/lib/types";
-import { mobileDock, navForRole } from "@/lib/navigation";
+import {
+  composeNav,
+  mobileDock,
+  readPins,
+  togglePin,
+  writePins,
+} from "@/lib/navigation";
 import { GhostButton, PrimaryButton, Sheet } from "@/components/ui/primitives";
 import { ContextualAnalyst } from "@/components/analyst/ContextualAnalyst";
 
@@ -58,31 +64,84 @@ export function AppShell({
   const [revealed, setRevealed] = useState(false);
   const [analystOpen, setAnalystOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [pins, setPins] = useState<NavKey[]>([]);
 
-  const { primary, reveal } = useMemo(() => navForRole(role), [role]);
-  const dock = useMemo(() => mobileDock(role), [role]);
+  useEffect(() => {
+    setPins(readPins(typeof window !== "undefined" ? window.localStorage : null));
+  }, []);
+
+  const { primary, reveal } = useMemo(() => composeNav(role, pins), [role, pins]);
+  const dock = useMemo(() => mobileDock(role, pins), [role, pins]);
   const sse = useMemo(() => sseMeta(connection), [connection]);
+
+  function onTogglePin(key: NavKey) {
+    const next = togglePin(role, pins, key);
+    setPins(next);
+    writePins(typeof window !== "undefined" ? window.localStorage : null, next);
+  }
 
   const navLinks = (items: typeof primary, revealStyle = false) =>
     items.map((item) => (
-      <Link
+      <div
         key={item.key}
-        href={item.href}
-        aria-current={active === item.key ? "page" : undefined}
-        className={
-          revealStyle
-            ? "forge-shell__nav-link forge-shell__nav-link--reveal"
-            : "forge-shell__nav-link"
-        }
-        onClick={() => setMobileNavOpen(false)}
+        style={{ display: "flex", alignItems: "center", gap: 4 }}
       >
-        <span>{item.label}</span>
-        {item.key === "alarms" && criticalAlarmCount > 0 ? (
-          <span className="tabular" aria-label={`${criticalAlarmCount} critical`}>
-            {criticalAlarmCount}
-          </span>
+        <Link
+          href={item.href}
+          aria-current={active === item.key ? "page" : undefined}
+          className={
+            revealStyle
+              ? "forge-shell__nav-link forge-shell__nav-link--reveal"
+              : "forge-shell__nav-link"
+          }
+          style={{ flex: 1 }}
+          onClick={() => setMobileNavOpen(false)}
+        >
+          <span>{item.label}</span>
+          {item.key === "alarms" && criticalAlarmCount > 0 ? (
+            <span className="tabular" aria-label={`${criticalAlarmCount} critical`}>
+              {criticalAlarmCount}
+            </span>
+          ) : null}
+        </Link>
+        {revealStyle ? (
+          <button
+            type="button"
+            aria-label={`Pin ${item.label} to primary nav`}
+            onClick={() => onTogglePin(item.key)}
+            style={{
+              minHeight: 44,
+              minWidth: 44,
+              borderRadius: 8,
+              border: "1px solid var(--forge-outline-variant)",
+              background: "transparent",
+              color: "var(--forge-secondary)",
+              fontSize: 11,
+              fontWeight: 700,
+            }}
+          >
+            Pin
+          </button>
+        ) : pins.includes(item.key) ? (
+          <button
+            type="button"
+            aria-label={`Unpin ${item.label}`}
+            onClick={() => onTogglePin(item.key)}
+            style={{
+              minHeight: 44,
+              minWidth: 44,
+              borderRadius: 8,
+              border: "1px solid var(--forge-outline-variant)",
+              background: "transparent",
+              color: "var(--forge-on-surface-variant)",
+              fontSize: 11,
+              fontWeight: 700,
+            }}
+          >
+            Unpin
+          </button>
         ) : null}
-      </Link>
+      </div>
     ));
 
   return (
