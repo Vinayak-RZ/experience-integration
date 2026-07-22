@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ConnectionStatus, NavKey, Role } from "@/lib/types";
 import {
   composeNav,
@@ -65,6 +65,7 @@ export function AppShell({
   const [analystOpen, setAnalystOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [pins, setPins] = useState<NavKey[]>([]);
+  const askAnalystRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     setPins(readPins(typeof window !== "undefined" ? window.localStorage : null));
@@ -179,7 +180,9 @@ export function AppShell({
             SSE {sse.label}
           </span>
         </div>
-        <PrimaryButton onClick={() => setAnalystOpen(true)}>Ask Analyst</PrimaryButton>
+        <span ref={askAnalystRef} tabIndex={-1} style={{ display: "inline-flex" }}>
+          <PrimaryButton onClick={() => setAnalystOpen(true)}>Ask Analyst</PrimaryButton>
+        </span>
       </header>
 
       <div className="forge-shell__body">
@@ -266,6 +269,7 @@ export function AppShell({
       <ContextualAnalyst
         open={analystOpen}
         onClose={() => setAnalystOpen(false)}
+        returnFocusRef={askAnalystRef}
         envelope={{
           orgId: "org_demo",
           plantId: "plant_jaipur_01",
