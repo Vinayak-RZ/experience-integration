@@ -1,5 +1,5 @@
-import { loadEnv } from "./config.js";
-import { runMigrations } from "./db/migrate.js";
+import { loadEnv } from "../config.js";
+import { runMigrations } from "./migrate.js";
 
 const env = loadEnv();
 if (!env.DATABASE_URL) {
