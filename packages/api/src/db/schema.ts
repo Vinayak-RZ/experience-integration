@@ -7,6 +7,7 @@ import {
   uniqueIndex,
   index,
   bigserial,
+  integer,
 } from "drizzle-orm/pg-core";
 import { authSchema } from "./auth-schema.js";
 
@@ -189,6 +190,42 @@ export const l5Events = pgTable(
   ],
 );
 
+/** Sustainability / ledger report job — approval-gated before external send. */
+export const reportJobs = pgTable(
+  "report_jobs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    plantId: uuid("plant_id")
+      .notNull()
+      .references(() => plants.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    periodStart: timestamp("period_start", { withTimezone: true }).notNull(),
+    periodEnd: timestamp("period_end", { withTimezone: true }).notNull(),
+    state: text("state").notNull().default("queued"),
+    dedupeKey: text("dedupe_key").notNull(),
+    bossJobId: text("boss_job_id"),
+    artifactHtml: text("artifact_html"),
+    error: text("error"),
+    createdBy: text("created_by"),
+    approvedBy: text("approved_by"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("report_jobs_dedupe_uidx").on(t.dedupeKey),
+    index("report_jobs_plant_state_idx").on(t.plantId, t.state),
+  ],
+);
+
 export const schema = {
   ...authSchema,
   organizations,
@@ -199,4 +236,5 @@ export const schema = {
   plantMemberships,
   l5EventCursors,
   l5Events,
+  reportJobs,
 };

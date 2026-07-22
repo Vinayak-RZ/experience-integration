@@ -43,6 +43,13 @@
       "when": 1784715600000,
       "tag": "0005_l5_events",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784719200000,
+      "tag": "0006_report_jobs",
+      "breakpoints": true
     }
   ]
 }

@@ -17,6 +17,7 @@ import { registerExportRoutes } from "./exports/routes.js";
 import type { Mailer } from "./mail/mailer.js";
 import { registerPlantRoutes } from "./plants/routes.js";
 import { problemHandler } from "./problems.js";
+import { registerReportRoutes } from "./reports/routes.js";
 import type { L5WorkflowClient } from "./upstream/l5/client.js";
 import type pg from "pg";
 
@@ -29,6 +30,7 @@ export type AppDeps = {
   pool?: pg.Pool;
   l5?: L5WorkflowClient | null;
   alarmFixture?: AlarmStore;
+  enqueueReportGenerate?: (reportJobId: string) => Promise<string | null>;
 };
 
 export async function buildApp(
@@ -142,6 +144,11 @@ export async function buildApp(
       fixture: opts.alarmFixture,
     });
     await registerExportRoutes(app, { auth: opts.auth, db: opts.db });
+    await registerReportRoutes(app, {
+      auth: opts.auth,
+      db: opts.db,
+      enqueueGenerate: opts.enqueueReportGenerate,
+    });
   }
   if (opts.auth && opts.db && opts.pool) {
     await registerEventRoutes(app, opts.auth, opts.db, opts.pool);
