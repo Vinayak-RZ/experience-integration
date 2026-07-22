@@ -88,31 +88,33 @@ export function AssignAssigneeSheet({
         <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
           {list.map((p) => (
             <li key={p.id}>
-              <button
-                type="button"
-                onClick={() => onAssign(p)}
+              <div
                 style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "12px 14px",
                   borderRadius: 10,
                   border: "1px solid var(--forge-outline-variant)",
                   background: "var(--forge-surface-container-lowest)",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                  <strong>{p.name}</strong>
-                  <StatusChip tone="info">{p.role.replaceAll("_", " ")}</StatusChip>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                    <strong>{p.name}</strong>
+                    <StatusChip tone="info">{p.role.replaceAll("_", " ")}</StatusChip>
+                  </div>
+                  <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
+                    {p.areas.join(" · ")} · {p.phoneMasked}
+                  </p>
                 </div>
-                <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
-                  {p.areas.join(" · ")} · {p.phoneMasked}
-                </p>
-              </button>
+                <PrimaryButton onClick={() => onAssign(p)}>Assign</PrimaryButton>
+              </div>
             </li>
           ))}
         </ul>
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="forge-btn-row">
           {!showAll ? (
             <SecondaryButton onClick={() => setShowAll(true)}>
               Browse all people
@@ -120,7 +122,7 @@ export function AssignAssigneeSheet({
           ) : (
             <GhostButton onClick={() => setShowAll(false)}>Show recommendations</GhostButton>
           )}
-          <PrimaryButton onClick={onClose}>Cancel</PrimaryButton>
+          <GhostButton onClick={onClose}>Cancel</GhostButton>
         </div>
       </Panel>
     </div>

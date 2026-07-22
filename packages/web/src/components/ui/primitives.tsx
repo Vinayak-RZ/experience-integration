@@ -153,14 +153,17 @@ export function PageHead({
 const btnBase: CSSProperties = {
   minHeight: TOUCH_MIN_PX,
   minWidth: TOUCH_MIN_PX,
-  padding: "0 18px",
-  borderRadius: "var(--forge-radius-md)",
-  fontWeight: 700,
+  padding: "0 16px",
+  borderRadius: 8,
+  fontFamily: "var(--forge-font-display)",
+  fontWeight: 600,
   fontSize: 16,
+  letterSpacing: "0.01em",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: 8,
+  gap: 7,
+  transition: "background 120ms ease, box-shadow 120ms ease, border-color 120ms ease, color 120ms ease",
 };
 
 export function PrimaryButton({
@@ -181,12 +184,15 @@ export function PrimaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
+      className="forge-btn forge-btn--primary"
       style={{
         ...btnBase,
         width: fullWidth ? "100%" : undefined,
         background: disabled ? "var(--forge-outline)" : "var(--forge-primary)",
         color: "var(--forge-on-primary)",
+        boxShadow: disabled ? "none" : "0 1px 2px rgba(25, 28, 26, 0.12)",
         opacity: disabled ? 0.7 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
       }}
     >
       {children}
@@ -210,10 +216,15 @@ export function SecondaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
+      className="forge-btn forge-btn--secondary"
       style={{
         ...btnBase,
-        background: disabled ? "var(--forge-outline)" : "var(--forge-secondary)",
-        color: "var(--forge-on-secondary)",
+        background: disabled
+          ? "var(--forge-outline)"
+          : "var(--forge-surface-container-lowest)",
+        color: disabled ? "var(--forge-on-surface-variant)" : "var(--forge-primary)",
+        border: `1px solid ${disabled ? "var(--forge-outline)" : "var(--forge-primary)"}`,
+        cursor: disabled ? "not-allowed" : "pointer",
       }}
     >
       {children}
@@ -237,11 +248,14 @@ export function GhostButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
+      className="forge-btn forge-btn--ghost"
       style={{
         ...btnBase,
-        background: "transparent",
+        background: "var(--forge-surface-container-lowest)",
         border: "1px solid var(--forge-outline-variant)",
-        color: "var(--forge-secondary)",
+        color: "var(--forge-on-surface-variant)",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.7 : 1,
       }}
     >
       {children}

@@ -45,8 +45,15 @@ describe("role-aware navigation", () => {
     assert.ok(primary.some((i) => i.key === "energy" && i.label === "Energy Analytics"));
   });
 
-  it("exposes Assignments to admin", () => {
-    assert.ok(navForRole("admin").primary.some((i) => i.key === "assignments"));
+  it("exposes Assignments to admin under reveal (Tools / Settings dock)", () => {
+    assert.ok(navForRole("admin").reveal.some((i) => i.key === "assignments"));
+    assert.equal(navForRole("admin").primary.some((i) => i.key === "assignments"), false);
+  });
+
+  it("keeps Plant Map as its own primary route", () => {
+    const { primary } = navForRole("energy_manager");
+    assert.ok(primary.some((i) => i.key === "plant_map" && i.href === "/plant-map"));
+    assert.ok(primary.some((i) => i.key === "equipment" && i.label === "Machine Health"));
   });
 
   it("keeps mobile dock to three primary destinations", () => {

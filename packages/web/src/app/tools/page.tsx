@@ -29,7 +29,7 @@ const TOOLS = [
     Icon: Activity,
   },
   {
-    href: "/equipment?view=map",
+    href: "/plant-map",
     title: "Plant Map / Energy twin",
     blurb: "Expandable power hierarchy across incomers and sections.",
     Icon: Map,

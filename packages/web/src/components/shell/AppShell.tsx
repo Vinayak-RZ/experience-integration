@@ -93,15 +93,12 @@ export function AppShell({
   const navLinks = (items: typeof primary) =>
     items.map((item) => {
       const Icon = NAV_ICONS[item.key];
-      const isActive =
-        active === item.key ||
-        (item.key === "plant_map" && active === "equipment") ||
-        (item.key === "equipment" && active === "equipment");
+      const isActive = active === item.key;
       return (
         <Link
           key={item.key}
           href={item.href}
-          aria-current={isActive && item.key !== "plant_map" ? "page" : undefined}
+          aria-current={isActive ? "page" : undefined}
           title={item.label}
           className="forge-shell__nav-link"
           onClick={() => setMobileNavOpen(false)}
@@ -164,9 +161,14 @@ export function AppShell({
             <div className="forge-shell__facility">
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Factory size={18} color="var(--forge-primary)" aria-hidden />
-                <span className="forge-shell__facility-name">{plantName.split(",")[0] ?? plantName}</span>
+                <span className="forge-shell__facility-name">
+                  {plantName.split(",")[0] ?? plantName}
+                </span>
               </div>
               <p className="forge-shell__facility-meta">{plantName}</p>
+              <span className="forge-chip forge-chip--primary" style={{ marginTop: 8 }}>
+                115 MW Peak Load
+              </span>
             </div>
           ) : null}
 

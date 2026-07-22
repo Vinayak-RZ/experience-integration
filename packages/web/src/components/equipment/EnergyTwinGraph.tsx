@@ -41,9 +41,11 @@ export function EnergyTwinGraph({ root = energyTwinFixture }: { root?: TwinNode 
           overflow: "auto",
           background: "var(--forge-surface)",
           minHeight: 360,
+          display: "flex",
+          justifyContent: "center",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: 0, minWidth: 640 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 0, alignItems: "center", minWidth: 0 }}>
           {visible.map(({ node, depth, edge }) => (
             <div
               key={node.id}
@@ -53,6 +55,7 @@ export function EnergyTwinGraph({ root = energyTwinFixture }: { root?: TwinNode 
                 marginLeft: depth * 28,
                 gap: 12,
                 marginBottom: 10,
+                justifyContent: "center",
               }}
             >
               {depth > 0 ? (

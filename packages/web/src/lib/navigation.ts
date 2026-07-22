@@ -4,14 +4,13 @@ export type NavItem = {
   key: NavKey;
   href: string;
   label: string;
-  /** Mirrors API route:* permission — fail closed when missing. */
   permission: `route:${string}`;
   tier: "primary" | "reveal";
 };
 
 /**
- * Professional IA — Evidence is deep-link only (not listed).
- * plant_map shares equipment route with ?view=map.
+ * Nav order mirrors stamped-energy-dashboard, plus ops screens (Alarms, Ask Analyst, Tools).
+ * Plant Map is its own route — not a Machine Health tab.
  */
 export const NAV_ITEMS: NavItem[] = [
   { key: "today", href: "/", label: "Overview", permission: "route:today", tier: "primary" },
@@ -39,7 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     key: "plant_map",
-    href: "/equipment?view=map",
+    href: "/plant-map",
     label: "Plant Map",
     permission: "route:equipment",
     tier: "primary",
@@ -70,14 +69,14 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/tools",
     label: "Tools",
     permission: "route:today",
-    tier: "primary",
+    tier: "reveal",
   },
   {
     key: "assignments",
     href: "/settings/assignments",
     label: "Assignments",
     permission: "route:admin",
-    tier: "primary",
+    tier: "reveal",
   },
   {
     key: "admin",
@@ -102,7 +101,6 @@ export const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-/** Client mirror of API authz route grants — keep in sync with packages/api authz matrix. */
 const ROLE_ROUTES: Record<Role, readonly string[]> = {
   operator: [
     "route:today",
@@ -175,7 +173,6 @@ export function canAccessRoute(role: Role, permission: string): boolean {
   return ROLE_ROUTES[role]?.includes(permission) === true;
 }
 
-/** Ops invariants — always primary when the role can access them; never unpin. */
 export const OPS_INVARIANTS: readonly NavKey[] = ["alarms", "prescriptions"];
 
 export const NAV_PIN_STORAGE_KEY = "stamped.l6.nav.pins";
@@ -196,7 +193,6 @@ export function isOpsInvariant(key: NavKey): boolean {
   return OPS_INVARIANTS.includes(key);
 }
 
-/** Sanitize pins: role-gated, reveal-tier only, never ops invariants. */
 export function sanitizePins(role: Role, pins: readonly NavKey[]): NavKey[] {
   const { reveal } = navForRole(role);
   const revealKeys = new Set(reveal.map((i) => i.key));
@@ -246,10 +242,6 @@ export function writeCollapsed(
   storage.setItem(NAV_COLLAPSE_STORAGE_KEY, collapsed ? "1" : "0");
 }
 
-/**
- * Progressive reveal with optional pinned tools promoted into primary.
- * Alarms/Prescriptions stay primary whenever the role allows them.
- */
 export function composeNav(
   role: Role,
   pins: readonly NavKey[] = [],
@@ -259,7 +251,6 @@ export function composeNav(
   const pinSet = new Set(clean);
   const pinned = base.reveal.filter((i) => pinSet.has(i.key));
   const remainingReveal = base.reveal.filter((i) => !pinSet.has(i.key));
-
   return {
     primary: [...base.primary, ...pinned],
     reveal: remainingReveal,
@@ -274,7 +265,6 @@ export function togglePin(role: Role, pins: readonly NavKey[], key: NavKey): Nav
   return sanitizePins(role, [...set]);
 }
 
-/** Mobile bottom bar — first three primary + More opens Tools. */
 export function mobileDock(role: Role, pins: readonly NavKey[] = []): NavItem[] {
   return composeNav(role, pins).primary.slice(0, 3);
 }

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { LedgerEntry, Prescription } from "@/lib/types";
 import { downloadTextFile, toCsv } from "@/lib/csv-download";
+import { downloadDocx } from "@/lib/docx-download";
 import { sanitizeClaimStatus } from "@/lib/ledger";
 import {
   GhostButton,
@@ -85,7 +86,30 @@ function prescriptionAuditCsv(rows: readonly Prescription[]): string {
   );
 }
 
-/** P0 Export Centre — CSV now; sustainability HTML approval in Auto fixture. */
+function sustainabilityLines(periodLabel: string, id: string): string[] {
+  return [
+    "Stamped Energy — Sustainability pack",
+    `Period: ${periodLabel}`,
+    `Report id: ${id}`,
+    "Status: approved (Auto fixture)",
+    "Scope 1: not_measured_by_stamped",
+    "ops_confirmed is not bill verified.",
+  ];
+}
+
+function sustainabilityCsv(periodLabel: string, id: string): string {
+  return toCsv(
+    ["field", "value"],
+    [
+      ["period", periodLabel],
+      ["report_id", id],
+      ["scope_1", "not_measured_by_stamped"],
+      ["claim_note", "ops_confirmed is not bill verified"],
+    ],
+  );
+}
+
+/** P0 Export Centre — CSV + DOCX after approval (no HTML pack). */
 export function ExportCentre({
   ledger,
   prescriptions,
@@ -132,18 +156,36 @@ export function ExportCentre({
     setReports((prev) =>
       prev.map((r) => (r.id === id ? { ...r, state: "approved" as const } : r)),
     );
-    setStatus(`Approved ${id} — download unlocked`);
+    setStatus(`Approved ${id} — CSV / DOCX download unlocked`);
   }
 
-  function downloadHtml(id: string) {
+  function requireApproved(id: string): LocalReport | null {
     const report = reports.find((r) => r.id === id);
     if (!report || report.state !== "approved") {
       setStatus("Approve before download");
-      return;
+      return null;
     }
-    const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>Sustainability ${report.periodLabel}</title></head><body><h1>Sustainability pack</h1><p>${report.periodLabel} · approved Auto fixture</p><p>Scope 1: not_measured_by_stamped</p></body></html>`;
-    downloadTextFile(`sustainability_${id}.html`, html, "text/html");
-    setStatus(`Downloaded ${id}`);
+    return report;
+  }
+
+  function downloadCsvPack(id: string) {
+    const report = requireApproved(id);
+    if (!report) return;
+    downloadTextFile(
+      `sustainability_${id}.csv`,
+      sustainabilityCsv(report.periodLabel, id),
+    );
+    setStatus(`Downloaded CSV ${id}`);
+  }
+
+  function downloadDocxPack(id: string) {
+    const report = requireApproved(id);
+    if (!report) return;
+    downloadDocx(
+      `sustainability_${id}.docx`,
+      sustainabilityLines(report.periodLabel, id),
+    );
+    setStatus(`Downloaded DOCX ${id}`);
   }
 
   return (
@@ -226,7 +268,14 @@ export function ExportCentre({
                     <SecondaryButton onClick={() => approve(r.id)}>Approve</SecondaryButton>
                   ) : null}
                   {r.state === "approved" ? (
-                    <GhostButton onClick={() => downloadHtml(r.id)}>Download HTML</GhostButton>
+                    <>
+                      <SecondaryButton onClick={() => downloadCsvPack(r.id)}>
+                        Download CSV
+                      </SecondaryButton>
+                      <GhostButton onClick={() => downloadDocxPack(r.id)}>
+                        Download DOCX
+                      </GhostButton>
+                    </>
                   ) : null}
                 </div>
               </li>
