@@ -22,10 +22,10 @@ todos:
     status: completed
   - id: phase-f-analytics-analyst
     content: "Phase F: deliver energy/equipment/TOD/intensity analytics and both analyst modes with confirmed actions"
-    status: in_progress
+    status: completed
   - id: phase-g-reports-sustainability
     content: "Phase G: deliver pg-boss report lifecycle, PDF/XLSX, sustainability metrics, focused BRSR/PAT output, and Export Centre"
-    status: pending
+    status: in_progress
   - id: phase-h-enterprise
     content: "Phase H: deliver public API, API keys, webhooks, Entra, Power BI, product telemetry, and AWS CDK definitions"
     status: pending
