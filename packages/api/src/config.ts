@@ -26,6 +26,26 @@ const EnvSchema = z.object({
   SMTP_FROM: z.string().email().default("noreply@stamped.local"),
   /** Password reset / invite token lifetime (seconds). */
   AUTH_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  /** L5 Closure & Verification base URL (server-side only). */
+  L5_BASE_URL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().url().default("http://127.0.0.1:8105"),
+  ),
+  L5_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
+  L5_AUTH_TOKEN: z.string().optional(),
+  /** Upstream gaps — default off until OpenAPI publishes the routes. */
+  L5_FEATURE_ALARM_ACK: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  L5_FEATURE_ALARM_ESCALATE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  L5_FEATURE_ALARM_UNSILENCE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
