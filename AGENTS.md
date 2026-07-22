@@ -193,3 +193,21 @@ See [skills-manifest.json](skills-manifest.json) for the full list.
 | [cursor-config-coding](https://github.com/Vinayak-RZ/cursor-config-coding) | Coding Cursor config (vendored here) |
 | [cursor-config-buisness](https://github.com/Vinayak-RZ/cursor-config-buisness) | PM/GTM/research |
 | [cursor-config-design](https://github.com/Vinayak-RZ/cursor-config-design) | decks, video, visual |
+
+## Cursor Cloud specific instructions
+
+### Services (local)
+
+| Service | Command | Port | Notes |
+|---------|---------|------|-------|
+| Web | `pnpm --filter @stamped/l6-web exec next dev --hostname 0.0.0.0 --port 3000` | 3000 | Fixture UI works **without** API/Postgres. Do **not** use `pnpm --filter @stamped/l6-web dev -- --hostname …` — Next treats `--hostname` as a project dir. |
+| API BFF | `pnpm --filter @stamped/l6-api dev` (after `set -a && source .env && set +a`) | 3001 | `REQUIRE_DATABASE=false` in `.env.example` — health/meta/OpenAPI work without Postgres. |
+| Worker | `pnpm --filter @stamped/l6-worker dev` | — | Needs Postgres (`DATABASE_URL`). Skip unless testing jobs. |
+| Postgres / Mailpit | `docker compose -f infra/docker-compose.yml up -d postgres mailpit` | 5432 / 1025+8025 | Optional for UI; required for auth/DB/worker smoke (`pnpm compose:smoke`). |
+
+### Gotchas
+
+- Always `git submodule update --init --recursive` before `pnpm validate` / contract checks (`external/` must contain `VERSION`).
+- **Mode A / Playwright:** `Ask Analyst` dialog works reliably against `next start` (production). Against Turbopack `next dev`, Playwright clicks may not open Mode A — prefer `PLAYWRIGHT_SKIP_WEBSERVER=1` with an already-running `next start`, or let Playwright’s config start `next start`.
+- Standard gates: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm validate` (see `scripts/validate.sh` / README). E2E: `VALIDATE_E2E=1 pnpm validate` or `pnpm --filter @stamped/l6-web test:e2e`.
+- UI gallery + fast demo video: `docs/demo/` (see README). Regen: from `packages/web`, with app on `:3000`, `node scripts/capture-ui-demo.mjs`.
