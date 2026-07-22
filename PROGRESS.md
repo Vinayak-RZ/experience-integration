@@ -62,10 +62,10 @@ adapters and CDK synthesis can proceed; real cutover requires human approval.
 
 ## Immediate next work
 
-1. Migrate the existing web seed to a pnpm workspace.
-2. Add CI and the shared L6 contract package.
-3. Scaffold Fastify, PostgreSQL/Drizzle, and pg-boss.
-4. Add the local compose profile and run the Phase A gate.
+1. Add CI and the shared L6 contract package.
+2. Scaffold Fastify BFF (product backend only — public `/v1` deferred), PostgreSQL/Drizzle, and pg-boss.
+3. Add the local compose profile and run the Phase A gate.
+4. Continue Auto execution into auth (B) then Forge UX (C); do not lead with public API.
 
 ## Deferred by scope
 
