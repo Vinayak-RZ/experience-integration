@@ -651,4 +651,40 @@ No. `/api/*` is the Forge BFF. `/v1` is a scoped read surface for partners.
 
 ---
 
-*Maintainer note: when shipping product changes, update counts, env tables, route catalogs, and §12 changelog in the same PR.*
+| Layer | Repo | L6 uses |
+|-------|------|---------|
+| L5 | closure-verification | Alarms, workflow, SSE, ack/defer |
+| L4 | knowledge-reasoning | Analyst + prescription text |
+| L2 | universal-repositary | Ledger / timeseries reads (HTTP only) |
+
+## UI demo (fixture plant)
+
+Local demo data lives in `packages/web` fixtures — start web with `pnpm --filter @stamped/l6-web exec next dev --hostname 0.0.0.0 --port 3000` (or `next start` after `pnpm build`). Regenerate captures from `packages/web` with `node scripts/capture-ui-demo.mjs` while the app is on `:3000`.
+
+### Fast walkthrough
+
+<video src="docs/demo/l6-ui-demo-fast.mp4" controls width="100%"></video>
+
+[Full-speed MP4](docs/demo/l6-ui-demo.mp4) · [WebM](docs/demo/l6-ui-demo.webm)
+
+### Screens (every route)
+
+| Screen | Preview |
+|--------|---------|
+| Today | ![Today](docs/demo/01-today.png) |
+| Alarms console | ![Alarms](docs/demo/02-alarms.png) |
+| Alarm detail | ![Alarm detail](docs/demo/03-alarm-detail.png) |
+| Prescriptions | ![Prescriptions](docs/demo/04-prescriptions.png) |
+| Prescription detail | ![Prescription detail](docs/demo/05-prescription-detail.png) |
+| Evidence | ![Evidence](docs/demo/06-evidence.png) |
+| Analyst (Mode B) | ![Analyst](docs/demo/07-analyst.png) |
+| Reports & ledger | ![Reports](docs/demo/08-reports.png) |
+| Energy | ![Energy](docs/demo/09-energy.png) |
+| Equipment | ![Equipment](docs/demo/10-equipment.png) |
+| Intensity / CO₂ | ![Intensity](docs/demo/11-intensity.png) |
+| Integrations | ![Integrations](docs/demo/12-integrations.png) |
+| Admin | ![Admin](docs/demo/13-admin.png) |
+| Analyst Mode A overlay | ![Mode A](docs/demo/14-analyst-mode-a.png) |
+| Alarm ack (action) | ![Ack](docs/demo/15-alarm-acked.png) |
+| Rx defer (action) | ![Defer](docs/demo/16-rx-deferred.png) |
+| Export approve (action) | ![Approve](docs/demo/17-export-approved.png) |
