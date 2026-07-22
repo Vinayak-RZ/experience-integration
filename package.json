@@ -14,6 +14,7 @@
     "validate": "pnpm typecheck && pnpm test && pnpm build",
     "ci:local": "bash ./scripts/ci-local.sh",
     "contracts:check": "./external/scripts/contract-check.sh",
-    "contracts:upstream": "node ./scripts/check-upstream-contracts.mjs"
+    "contracts:upstream": "node ./scripts/check-upstream-contracts.mjs",
+    "test:integration": "pnpm --filter @stamped/l6-api test"
   }
 }

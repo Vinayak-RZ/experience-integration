@@ -11,7 +11,7 @@
     "test": "tsx --test tests/**/*.test.ts",
     "build": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate": "tsx src/db/migrate-cli.ts"
   },
   "dependencies": {
     "@fastify/sensible": "catalog:",
