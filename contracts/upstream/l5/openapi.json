@@ -1,0 +1,69 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Stamped L5 — Closure & Verification (fixture placeholder)",
+    "version": "0.0.0-fixture",
+    "description": "Placeholder until closure-verification publishes OpenAPI. Documents expected L6-facing routes; alarm action gaps are explicit."
+  },
+  "paths": {
+    "/v1/alarms": {
+      "get": {
+        "summary": "List EMS alarms for plant",
+        "operationId": "listAlarms",
+        "parameters": [
+          { "name": "org_id", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "plant_id", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Alarm list" } }
+      }
+    },
+    "/v1/alarms/{alarm_id}/silence": {
+      "post": {
+        "summary": "Silence alarm",
+        "operationId": "silenceAlarm",
+        "parameters": [
+          { "name": "alarm_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Silenced" } }
+      }
+    },
+    "/v1/alarms/{alarm_id}/ack": {
+      "post": {
+        "summary": "Ack alarm (UPSTREAM GAP — feature-gated in L6)",
+        "operationId": "ackAlarm",
+        "x-stamped-status": "upstream_missing",
+        "responses": { "501": { "description": "Not published by L5 yet" } }
+      }
+    },
+    "/v1/alarms/{alarm_id}/escalate": {
+      "post": {
+        "summary": "Escalate alarm (UPSTREAM GAP — feature-gated in L6)",
+        "operationId": "escalateAlarm",
+        "x-stamped-status": "upstream_missing",
+        "responses": { "501": { "description": "Not published by L5 yet" } }
+      }
+    },
+    "/v1/alarms/{alarm_id}/unsilence": {
+      "post": {
+        "summary": "Unsilence alarm (UPSTREAM GAP — feature-gated in L6)",
+        "operationId": "unsilenceAlarm",
+        "x-stamped-status": "upstream_missing",
+        "responses": { "501": { "description": "Not published by L5 yet" } }
+      }
+    },
+    "/v1/events": {
+      "get": {
+        "summary": "Poll workflow/alarm events",
+        "operationId": "listEvents",
+        "responses": { "200": { "description": "Event page" } }
+      }
+    },
+    "/v1/prescriptions": {
+      "get": {
+        "summary": "List prescriptions / workflow projection",
+        "operationId": "listPrescriptions",
+        "responses": { "200": { "description": "Prescription list" } }
+      }
+    }
+  }
+}

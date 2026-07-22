@@ -13,6 +13,7 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "validate": "pnpm typecheck && pnpm test && pnpm build",
     "ci:local": "bash ./scripts/ci-local.sh",
-    "contracts:check": "./external/scripts/contract-check.sh"
+    "contracts:check": "./external/scripts/contract-check.sh",
+    "contracts:upstream": "node ./scripts/check-upstream-contracts.mjs"
   }
 }

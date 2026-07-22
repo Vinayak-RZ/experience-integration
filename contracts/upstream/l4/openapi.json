@@ -1,0 +1,27 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Stamped L4 — Knowledge & Reasoning (fixture placeholder)",
+    "version": "0.0.0-fixture",
+    "description": "Placeholder until knowledge-reasoning publishes OpenAPI for analyst sessions."
+  },
+  "paths": {
+    "/v1/sessions": {
+      "post": {
+        "summary": "Create analyst session",
+        "operationId": "createSession",
+        "responses": { "201": { "description": "Session created" } }
+      }
+    },
+    "/v1/sessions/{session_id}/messages": {
+      "post": {
+        "summary": "Send analyst message with context envelope",
+        "operationId": "postMessage",
+        "parameters": [
+          { "name": "session_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Cited response" } }
+      }
+    }
+  }
+}

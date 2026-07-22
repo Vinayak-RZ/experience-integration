@@ -59,5 +59,8 @@ jobs:
       - name: Platform contract check
         run: ./external/scripts/contract-check.sh
 
+      - name: Upstream OpenAPI drift check
+        run: pnpm contracts:upstream
+
       - name: Typecheck, test, build
         run: pnpm validate
