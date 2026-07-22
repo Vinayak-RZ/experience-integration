@@ -1,8 +1,10 @@
 import {
   AlarmSeveritySchema,
   AlarmStateSchema,
+  WorkflowEventSchema,
   type AlarmSeverity,
   type AlarmState,
+  type WorkflowEvent,
 } from "@stamped/l6-contracts";
 import { UpstreamError, upstreamFetch } from "../http.js";
 import { z } from "zod";
@@ -40,6 +42,11 @@ export type L5Alarm = z.infer<typeof L5AlarmSchema>;
 
 const ListAlarmsResponseSchema = z.object({
   items: z.array(L5AlarmSchema),
+  next_cursor: z.string().nullable().optional(),
+});
+
+const ListEventsResponseSchema = z.object({
+  items: z.array(WorkflowEventSchema),
   next_cursor: z.string().nullable().optional(),
 });
 
@@ -87,6 +94,28 @@ export class L5WorkflowClient {
       headers: this.headers(),
     });
     return L5AlarmSchema.parse(raw);
+  }
+
+  async listEvents(input: {
+    orgId: string;
+    plantId: string;
+    since?: string;
+    cursor?: string;
+  }): Promise<{ items: WorkflowEvent[]; nextCursor: string | null }> {
+    const raw = await upstreamFetch<unknown>({
+      baseUrl: this.opts.baseUrl,
+      path: "v1/events",
+      query: {
+        org_id: input.orgId,
+        plant_id: input.plantId,
+        since: input.since,
+        cursor: input.cursor,
+      },
+      timeoutMs: this.opts.timeoutMs,
+      headers: this.headers(),
+    });
+    const parsed = ListEventsResponseSchema.parse(raw);
+    return { items: parsed.items, nextCursor: parsed.next_cursor ?? null };
   }
 
   async silenceAlarm(

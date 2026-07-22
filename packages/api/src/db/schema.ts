@@ -5,6 +5,7 @@ import {
   uuid,
   jsonb,
   uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core";
 import { authSchema } from "./auth-schema.js";
 
@@ -139,6 +140,52 @@ export const plantMemberships = pgTable(
   ],
 );
 
+/** Per-plant L5 poll cursor — advanced only after durable append. */
+export const l5EventCursors = pgTable(
+  "l5_event_cursors",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orgExternalId: text("org_external_id").notNull(),
+    plantExternalId: text("plant_external_id").notNull(),
+    cursor: text("cursor").notNull().default(""),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("l5_event_cursors_org_plant_uidx").on(
+      t.orgExternalId,
+      t.plantExternalId,
+    ),
+  ],
+);
+
+/** Append-only L5 event mirror — dedupe_key unique. SSE resumes via id. */
+export const l5Events = pgTable(
+  "l5_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orgExternalId: text("org_external_id").notNull(),
+    plantExternalId: text("plant_external_id").notNull(),
+    eventId: text("event_id").notNull(),
+    dedupeKey: text("dedupe_key").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    ingestedAt: timestamp("ingested_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("l5_events_dedupe_uidx").on(t.dedupeKey),
+    uniqueIndex("l5_events_event_id_uidx").on(t.eventId),
+    index("l5_events_plant_ingested_idx").on(
+      t.orgExternalId,
+      t.plantExternalId,
+      t.ingestedAt,
+    ),
+  ],
+);
+
 export const schema = {
   ...authSchema,
   organizations,
@@ -147,4 +194,6 @@ export const schema = {
   auditEvents,
   memberships,
   plantMemberships,
+  l5EventCursors,
+  l5Events,
 };
