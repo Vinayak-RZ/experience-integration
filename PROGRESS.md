@@ -2,10 +2,10 @@
 
 ## Current phase
 
-**Phase C — Forge UX system** (starting)
+**Phase D — Upstream adapters and realtime** (starting)
 
-Phase B auth/tenancy is complete. Auto continues into Forge design tokens and
-responsive product shell. Public `/v1` remains deferred (Phase H).
+Phase C Forge UX is complete. Auto continues into L2/L4/L5 adapters and
+resumable SSE. Public `/v1` remains deferred (Phase H).
 
 ## Phase status
 
@@ -14,8 +14,8 @@ responsive product shell. Public `/v1` remains deferred (Phase H).
 | 0 — Authority and specification | Complete | Approved artifacts and explicit upstream blockers |
 | A — Workspace and foundation | Complete | Frozen install, migrations, contracts, tests, builds |
 | B — Authentication and tenancy | Complete | Invite/login/plant-switch/RBAC matrix |
-| C — Forge UX system | Pending | Desktop/mobile shell and accessibility baseline |
-| D — Upstream and realtime | Pending | Adapter contracts and resumable SSE |
+| C — Forge UX system | Complete | Desktop/mobile shell and accessibility baseline |
+| D — Upstream and realtime | In progress | Adapter contracts and resumable SSE |
 | E — Operational control room | Pending | Mobile alarm/Rx and ledger E2E |
 | F — Analytics and analyst | Pending | Dense charts and confirmed analyst handoff |
 | G — Reports and sustainability | Pending | Approved PDF/XLSX and job recovery |
@@ -25,6 +25,6 @@ responsive product shell. Public `/v1` remains deferred (Phase H).
 
 ## Immediate next work
 
-1. Implement Forge CSS tokens and fonts from external design SoT.
-2. Accessible primitives and role-aware app shell.
-3. Route states, navigation, ECharts foundation.
+1. Resilient L5 workflow client (list/detail/ack/transition + feature gates).
+2. L2 query client and L4 analyst client.
+3. Canonical mappings, durable events, resumable SSE without Redis.
