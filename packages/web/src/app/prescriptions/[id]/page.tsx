@@ -6,6 +6,7 @@ import { PageHead, Panel, StatusChip } from "@/components/ui/primitives";
 import {
   DEMO_PLANT,
   connectionFixture,
+  demoCriticalAlarmCount,
   prescriptionsFixture,
 } from "@/fixtures/demo";
 import { claimBadgeLabel, formatInr } from "@/lib/format";
@@ -39,7 +40,7 @@ export default async function PrescriptionDetailPage({
       screenTitle={rx.title}
       contextSummary={[rx.why, formatInr(rx.impactInrPerMonth) + "/mo"]}
       focusEntity={{ type: "prescription", id: rx.id }}
-      criticalAlarmCount={2}
+      criticalAlarmCount={demoCriticalAlarmCount()}
     >
       <PageHead
         eyebrow="Prescription"

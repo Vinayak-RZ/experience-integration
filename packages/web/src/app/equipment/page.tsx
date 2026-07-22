@@ -1,9 +1,17 @@
 import { EquipmentMap } from "@/components/analytics/EquipmentMap";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
-import { DEMO_PLANT, connectionFixture } from "@/fixtures/demo";
+import {
+  DEMO_PLANT,
+  assetsFixture,
+  connectionFixture,
+  demoCriticalAlarmCount,
+} from "@/fixtures/demo";
 
 export default function EquipmentPage() {
+  const hot = assetsFixture.filter((a) => a.health === "hot").length;
+  const watch = assetsFixture.filter((a) => a.health === "watch").length;
+
   return (
     <AppShell
       active="equipment"
@@ -11,8 +19,11 @@ export default function EquipmentPage() {
       role="energy_manager"
       connection={connectionFixture}
       screenTitle="Equipment"
-      contextSummary={["Calm health map", "Load dials"]}
-      criticalAlarmCount={2}
+      contextSummary={[
+        `${assetsFixture.length} assets · ${hot} hot · ${watch} watch`,
+        "Load dials",
+      ]}
+      criticalAlarmCount={demoCriticalAlarmCount()}
     >
       <PageHead eyebrow="Analytics" title="Equipment" />
       <EquipmentMap />

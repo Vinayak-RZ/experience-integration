@@ -1,12 +1,16 @@
 import { AlarmConsole } from "@/components/alarms/AlarmConsole";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
-import { DEMO_PLANT, alarmsFixture, connectionFixture } from "@/fixtures/demo";
+import {
+  DEMO_PLANT,
+  alarmsFixture,
+  connectionFixture,
+  demoCriticalAlarmCount,
+} from "@/fixtures/demo";
 
 export default function AlarmsPage() {
-  const critical = alarmsFixture.filter(
-    (a) => a.severity === "critical" && a.state !== "cleared",
-  ).length;
+  const critical = demoCriticalAlarmCount();
+  const open = alarmsFixture.filter((a) => a.state !== "cleared").length;
 
   return (
     <AppShell
@@ -15,8 +19,12 @@ export default function AlarmsPage() {
       role="supervisor"
       connection={connectionFixture}
       screenTitle="EMS alarm console"
-      contextSummary={["Open EMS alarms", "Severity-first triage"]}
-      focusEntity={{ type: "alarm", id: alarmsFixture[0].id }}
+      contextSummary={[
+        `${open} open · ${critical} critical`,
+        DEMO_PLANT.shift,
+        "Severity-first triage",
+      ]}
+      focusEntity={{ type: "alarm", id: alarmsFixture[0]!.id }}
       criticalAlarmCount={critical}
     >
       <PageHead eyebrow="EMS" title="Alarm console" />

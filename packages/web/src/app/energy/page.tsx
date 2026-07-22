@@ -1,7 +1,13 @@
 import { EnergyBoard } from "@/components/analytics/EnergyBoard";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
-import { DEMO_PLANT, connectionFixture } from "@/fixtures/demo";
+import {
+  DEMO_PLANT,
+  connectionFixture,
+  demoCriticalAlarmCount,
+  energyKpisFixture,
+} from "@/fixtures/demo";
+import { formatIndianNum } from "@/lib/format";
 
 export default function EnergyPage() {
   return (
@@ -11,8 +17,11 @@ export default function EnergyPage() {
       role="energy_manager"
       connection={connectionFixture}
       screenTitle="Energy"
-      contextSummary={["7-day demand", "Top consumers"]}
-      criticalAlarmCount={2}
+      contextSummary={[
+        `MTD ${formatIndianNum(energyKpisFixture.mtdGridKwh)} kWh`,
+        `Peak MD ${formatIndianNum(energyKpisFixture.peakMdKva)} kVA`,
+      ]}
+      criticalAlarmCount={demoCriticalAlarmCount()}
     >
       <PageHead eyebrow="Analytics" title="Energy" />
       <EnergyBoard />

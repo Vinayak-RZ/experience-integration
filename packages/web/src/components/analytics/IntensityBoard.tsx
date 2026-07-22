@@ -2,21 +2,14 @@
 
 import { Panel, StatusChip } from "@/components/ui/primitives";
 import { RouteStateView } from "@/components/states/RouteStateView";
+import { intensityDemoInput } from "@/fixtures/demo";
 import { intensitySnapshot, missingLabel } from "@/lib/analytics";
 import { resolveRouteState } from "@/lib/route-state";
 import { formatIndianNum } from "@/lib/format";
 
 export function IntensityBoard() {
-  // Fixture: production units unknown → honest partial SEC
-  const snap = intensitySnapshot({
-    productionUnits: null,
-    gridKwh: 1_200_000,
-    renewableKwh: 80_000,
-    emissionFactorTPerMwh: 0.71,
-    emissionFactorRef: "cea_grid_india_2024_v1",
-    cmdKva: 5000,
-    peakMdKva: 4680,
-  });
+  // Demo plant ships production units so SEC calculates; Scope 1 stays honest.
+  const snap = intensitySnapshot(intensityDemoInput);
   const state = resolveRouteState({ missing: snap.missing });
 
   return (
@@ -30,7 +23,11 @@ export function IntensityBoard() {
                 ? `${formatIndianNum(snap.secKwhPerUnit, 2)} kWh/unit`
                 : "—"
             }
-            hint="Needs production units"
+            hint={
+              intensityDemoInput.productionUnits != null
+                ? `${formatIndianNum(intensityDemoInput.productionUnits)} units MTD`
+                : "Needs production units"
+            }
           />
           <Metric
             label="Renewable share"

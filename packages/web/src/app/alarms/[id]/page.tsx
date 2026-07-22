@@ -3,8 +3,15 @@ import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead, Panel, PrimaryButton, StatusChip } from "@/components/ui/primitives";
-import { DEMO_PLANT, alarmsFixture, connectionFixture } from "@/fixtures/demo";
+import {
+  DEMO_PLANT,
+  alarmsFixture,
+  assetById,
+  connectionFixture,
+  demoCriticalAlarmCount,
+} from "@/fixtures/demo";
 import { actionsForState } from "@/lib/alarms";
+import { formatIndianNum } from "@/lib/format";
 
 const linkBtn: CSSProperties = {
   minHeight: 48,
@@ -26,9 +33,7 @@ export default async function AlarmDetailPage({
   if (!alarm) notFound();
 
   const actions = actionsForState(alarm.state);
-  const critical = alarmsFixture.filter(
-    (a) => a.severity === "critical" && a.state !== "cleared",
-  ).length;
+  const asset = assetById(alarm.assetId);
 
   return (
     <AppShell
@@ -39,7 +44,7 @@ export default async function AlarmDetailPage({
       screenTitle={`Alarm ${alarm.assetLabel}`}
       contextSummary={[alarm.summary]}
       focusEntity={{ type: "alarm", id: alarm.id }}
-      criticalAlarmCount={critical}
+      criticalAlarmCount={demoCriticalAlarmCount()}
     >
       <PageHead
         eyebrow="EMS detail"
@@ -64,11 +69,22 @@ export default async function AlarmDetailPage({
             {alarm.severity}
           </StatusChip>
           <StatusChip tone="neutral">{alarm.state}</StatusChip>
+          {alarm.findingId ? <StatusChip tone="info">{alarm.findingId}</StatusChip> : null}
         </div>
         <p style={{ margin: "16px 0 0", fontSize: 16 }}>{alarm.summary}</p>
         <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--forge-on-surface-variant)" }}>
           Raised {alarm.raisedAt} · Asset {alarm.assetId}
+          {alarm.ownerRole ? ` · Owner ${alarm.ownerRole.replaceAll("_", " ")}` : ""}
         </p>
+        {asset ? (
+          <p
+            className="tabular"
+            style={{ margin: "8px 0 0", fontSize: 13, color: "var(--forge-on-surface-variant)" }}
+          >
+            {asset.area} · Load {asset.loadPct}% · {formatIndianNum(asset.kwhMtd)} kWh MTD
+            {asset.pf != null ? ` · PF ${formatIndianNum(asset.pf, 2)}` : ""}
+          </p>
+        ) : null}
         <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
           {actions.includes("ack") ? <PrimaryButton>Ack</PrimaryButton> : null}
           <Link href={`/evidence?alarmId=${alarm.id}`} style={linkBtn}>
@@ -76,7 +92,7 @@ export default async function AlarmDetailPage({
           </Link>
           {alarm.relatedPrescriptionId ? (
             <Link
-              href={`/prescriptions?focus=${alarm.relatedPrescriptionId}`}
+              href={`/prescriptions/${alarm.relatedPrescriptionId}`}
               style={linkBtn}
             >
               Open prescription

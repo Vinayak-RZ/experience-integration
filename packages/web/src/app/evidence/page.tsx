@@ -5,6 +5,7 @@ import {
   DEMO_PLANT,
   alarmsFixture,
   connectionFixture,
+  demoCriticalAlarmCount,
   prescriptionsFixture,
 } from "@/fixtures/demo";
 import { buildEvidencePack, resolveEvidenceScope } from "@/lib/evidence";
@@ -43,7 +44,7 @@ export default async function EvidencePage({
             ? { type: "alarm", id: scope.alarmId }
             : undefined
       }
-      criticalAlarmCount={2}
+      criticalAlarmCount={demoCriticalAlarmCount()}
     >
       <PageHead eyebrow="Proof" title={scope.title} />
       <EvidenceExplorer pack={pack} />

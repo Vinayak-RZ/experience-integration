@@ -3,6 +3,11 @@
 import { useMemo, useState } from "react";
 import type { AnalystContextEnvelope } from "@/lib/types";
 import {
+  DEMO_PLANT,
+  investigationsFixture,
+  type DemoInvestigation,
+} from "@/fixtures/demo";
+import {
   confirmActionGate,
   fixtureAnalystReply,
   proposeActionFromReply,
@@ -17,14 +22,28 @@ import {
   StatusChip,
 } from "@/components/ui/primitives";
 
-const INVESTIGATIONS = [
-  { id: "inv_1", title: "Kiln 1 MD coincidence", focus: "alarm:alm_1001" },
-  { id: "inv_2", title: "Mill 1 PF slab", focus: "prescription:rx_9002" },
-];
+function seedMessages(inv: DemoInvestigation): AnalystMessage[] {
+  return inv.seedMessages.map((m, i) => ({
+    id: `${inv.id}_seed_${i}`,
+    role: m.role,
+    content: m.content,
+    citations:
+      m.role === "assistant"
+        ? [
+            {
+              id: `cite_${inv.id}`,
+              title: inv.focus,
+              path: "H" as const,
+              snippet: inv.summary,
+            },
+          ]
+        : undefined,
+  }));
+}
 
 const BASE_ENVELOPE: AnalystContextEnvelope = {
-  orgId: "org_demo",
-  plantId: "plant_jaipur_01",
+  orgId: DEMO_PLANT.orgId,
+  plantId: DEMO_PLANT.plantId,
   userId: "user_demo",
   role: "energy_manager",
   routeId: "analyst",
@@ -35,24 +54,36 @@ const BASE_ENVELOPE: AnalystContextEnvelope = {
 
 /** Mode B full analyst workspace — fixture L4; confirm before any L5 write. */
 export function AnalystWorkspace() {
-  const [activeInv, setActiveInv] = useState(INVESTIGATIONS[0]!.id);
+  const [activeInv, setActiveInv] = useState(investigationsFixture[0]!.id);
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<AnalystMessage[]>([]);
+  const [messages, setMessages] = useState<AnalystMessage[]>(() =>
+    seedMessages(investigationsFixture[0]!),
+  );
   const [proposal, setProposal] = useState<ProposedAction | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
   const envelope = useMemo(() => {
-    const inv = INVESTIGATIONS.find((i) => i.id === activeInv)!;
+    const inv = investigationsFixture.find((i) => i.id === activeInv)!;
     const [type, id] = inv.focus.split(":") as ["alarm" | "prescription", string];
     return {
       ...BASE_ENVELOPE,
       focusEntity: { type, id },
       screenTitle: inv.title,
+      visibleSummary: [inv.summary, DEMO_PLANT.plantName],
     } satisfies AnalystContextEnvelope;
   }, [activeInv]);
 
   const citations = messages.flatMap((m) => m.citations ?? []);
+
+  function selectInv(id: string) {
+    const inv = investigationsFixture.find((i) => i.id === id)!;
+    setActiveInv(id);
+    setMessages(seedMessages(inv));
+    setProposal(null);
+    setStatus(null);
+    setConfirming(false);
+  }
 
   function send() {
     const q = draft.trim();
@@ -81,7 +112,7 @@ export function AnalystWorkspace() {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "220px 1.4fr 1fr",
+        gridTemplateColumns: "240px 1.4fr 1fr",
         gap: 12,
         minHeight: 480,
       }}
@@ -93,16 +124,11 @@ export function AnalystWorkspace() {
           Investigations
         </h2>
         <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 6 }}>
-          {INVESTIGATIONS.map((inv) => (
+          {investigationsFixture.map((inv) => (
             <li key={inv.id}>
               <button
                 type="button"
-                onClick={() => {
-                  setActiveInv(inv.id);
-                  setMessages([]);
-                  setProposal(null);
-                  setStatus(null);
-                }}
+                onClick={() => selectInv(inv.id)}
                 style={{
                   width: "100%",
                   textAlign: "left",
@@ -118,7 +144,18 @@ export function AnalystWorkspace() {
                   color: activeInv === inv.id ? "#fff" : "var(--forge-on-surface)",
                 }}
               >
-                {inv.title}
+                <span style={{ display: "block" }}>{inv.title}</span>
+                <span
+                  style={{
+                    display: "block",
+                    marginTop: 4,
+                    fontWeight: 500,
+                    fontSize: 11,
+                    opacity: 0.85,
+                  }}
+                >
+                  {inv.summary}
+                </span>
               </button>
             </li>
           ))}

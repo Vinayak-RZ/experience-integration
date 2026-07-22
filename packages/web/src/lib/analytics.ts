@@ -1,5 +1,6 @@
 import type { Point } from "@/lib/chart-sample";
 import { buildMinuteSeries } from "@/lib/chart-sample";
+import { consumersFromAssets } from "@/fixtures/demo";
 
 export type ConsumerRow = {
   assetId: string;
@@ -36,18 +37,14 @@ export const TOD_BANDS_RJ: TodBand[] = [
   { id: "peak2", label: "Peak", fromHour: 18, toHour: 22, rateInrPerKwh: 8.9 },
 ];
 
+/** Top consumers from shared Jaipur demo plant assets (excludes incomer). */
 export function topConsumersFixture(): ConsumerRow[] {
-  const raw = [
-    { assetId: "kiln_1", label: "Kiln 1", kwh: 412_000, health: "hot" as const },
-    { assetId: "cm_1", label: "Cement Mill 1", kwh: 268_000, health: "watch" as const },
-    { assetId: "mill_2", label: "Mill 2", kwh: 191_000, health: "calm" as const },
-    { assetId: "comp_2", label: "Compressor 2", kwh: 84_000, health: "calm" as const },
-    { assetId: "pack_1", label: "Packing", kwh: 61_000, health: "calm" as const },
-  ];
-  const total = raw.reduce((s, r) => s + r.kwh, 0);
-  return raw.map((r) => ({
-    ...r,
-    sharePct: Math.round((r.kwh / total) * 1000) / 10,
+  return consumersFromAssets().map((r) => ({
+    assetId: r.assetId,
+    label: r.label,
+    kwh: r.kwh,
+    sharePct: r.sharePct,
+    health: r.health,
   }));
 }
 

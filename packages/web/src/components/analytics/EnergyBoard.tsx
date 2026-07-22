@@ -3,17 +3,32 @@
 import { useMemo } from "react";
 import { ForgeChart } from "@/components/charts/ForgeChart";
 import { Panel, StatusChip } from "@/components/ui/primitives";
+import { DEMO_PLANT, energyKpisFixture } from "@/fixtures/demo";
 import { energyTrendPoints, topConsumersFixture } from "@/lib/analytics";
-import { formatIndianNum } from "@/lib/format";
+import { formatIndianNum, formatInr } from "@/lib/format";
 
 export function EnergyBoard() {
   const points = useMemo(() => energyTrendPoints(7), []);
   const consumers = topConsumersFixture();
+  const k = energyKpisFixture;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }} data-energy>
+      <Panel style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+        <Kpi label="MTD grid" value={`${formatIndianNum(k.mtdGridKwh)} kWh`} />
+        <Kpi label="MTD renewable" value={`${formatIndianNum(k.mtdRenewableKwh)} kWh`} />
+        <Kpi label="MTD cost" value={formatInr(k.mtdCostInr)} hint="Tariff blended" />
+        <Kpi
+          label="Vs baseline (7d)"
+          value={`+${k.vsBaselinePct}%`}
+          hint="Telemetry-only until L2 baselines"
+        />
+        <Kpi label="Avg PF" value={formatIndianNum(k.avgPf, 2)} />
+        <Kpi label="Peak TOD share" value={`${k.todPeakSharePct}%`} />
+      </Panel>
+
       <ForgeChart
-        title="Plant demand (7-day minute)"
+        title={`${DEMO_PLANT.plantName} demand (7-day minute)`}
         seriesName="Demand"
         points={points}
         unit="kW"
@@ -49,7 +64,11 @@ export function EnergyBoard() {
                 <p style={{ margin: 0, fontWeight: 700 }}>{c.label}</p>
                 <p
                   className="tabular"
-                  style={{ margin: "4px 0 0", fontSize: 12, color: "var(--forge-on-surface-variant)" }}
+                  style={{
+                    margin: "4px 0 0",
+                    fontSize: 12,
+                    color: "var(--forge-on-surface-variant)",
+                  }}
                 >
                   {formatIndianNum(c.kwh)} kWh · {c.sharePct}%
                 </p>
@@ -66,6 +85,30 @@ export function EnergyBoard() {
           Baseline band omitted until L2 baseline reads are published — trend is telemetry-only.
         </p>
       </Panel>
+    </div>
+  );
+}
+
+function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div style={{ minWidth: 120 }}>
+      <p style={{ margin: 0, fontSize: 12, color: "var(--forge-on-surface-variant)" }}>{label}</p>
+      <p
+        className="tabular"
+        style={{
+          margin: "4px 0 0",
+          fontFamily: "var(--forge-font-display)",
+          fontWeight: 800,
+          fontSize: 22,
+        }}
+      >
+        {value}
+      </p>
+      {hint ? (
+        <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--forge-on-surface-variant)" }}>
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

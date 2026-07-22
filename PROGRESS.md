@@ -30,3 +30,10 @@ and GitHub Actions cover quality / postgres / browser / infra jobs.
 1. Human: register Entra app + Power BI workspace; approve `cdk diff`.
 2. Replace CDK placeholder image with ECR; run smoke on Mumbai.
 3. Optional: axe Playwright project + self-hosted fonts.
+
+## Demo fixtures (2026-07-22)
+
+Jaipur Works Auto demo is thorough across all Forge screens via
+`packages/web/src/fixtures/demo.ts` (assets, alarms, Rx, ledger, members, API
+keys, webhooks, report jobs, investigations, energy KPIs). Today tiles derive
+from the same helpers so shell banners stay consistent.

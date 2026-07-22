@@ -1,14 +1,14 @@
 "use client";
 
 import { Panel, StatusChip } from "@/components/ui/primitives";
+import { DEMO_PLANT, energyKpisFixture } from "@/fixtures/demo";
 import { TOD_BANDS_RJ, mdHeadroomPct } from "@/lib/analytics";
 import { formatIndianNum } from "@/lib/format";
 
-const CMD_KVA = 5000;
-const PEAK_MD_KVA = 4680;
-
 export function TodMdBoard() {
-  const headroom = mdHeadroomPct(PEAK_MD_KVA, CMD_KVA);
+  const cmd = energyKpisFixture.cmdKva;
+  const peak = energyKpisFixture.peakMdKva;
+  const headroom = mdHeadroomPct(peak, cmd);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }} data-tod-md>
@@ -26,7 +26,10 @@ export function TodMdBoard() {
               fontSize: 28,
             }}
           >
-            {formatIndianNum(CMD_KVA)} kVA
+            {formatIndianNum(cmd)} kVA
+          </p>
+          <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--forge-on-surface-variant)" }}>
+            {DEMO_PLANT.tariff}
           </p>
         </div>
         <div>
@@ -42,7 +45,7 @@ export function TodMdBoard() {
               fontSize: 28,
             }}
           >
-            {formatIndianNum(PEAK_MD_KVA)} kVA
+            {formatIndianNum(peak)} kVA
           </p>
         </div>
         <div>
@@ -92,7 +95,11 @@ export function TodMdBoard() {
                 <StatusChip tone={b.label === "Peak" ? "warning" : "neutral"}>{b.label}</StatusChip>
                 <p
                   className="tabular"
-                  style={{ margin: "6px 0 0", fontSize: 12, color: "var(--forge-on-surface-variant)" }}
+                  style={{
+                    margin: "6px 0 0",
+                    fontSize: 12,
+                    color: "var(--forge-on-surface-variant)",
+                  }}
                 >
                   {String(b.fromHour).padStart(2, "0")}:00 → {String(b.toHour).padStart(2, "0")}:00
                 </p>

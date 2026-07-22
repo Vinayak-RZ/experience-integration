@@ -36,8 +36,8 @@ describe("claim-safe savings ledger", () => {
   it("sums ops-confirmed realised separately from potential", () => {
     const ops = sumOpsConfirmedInr(ledgerFixture);
     const potential = sumPotentialInr(ledgerFixture);
-    assert.equal(ops, 11200);
-    assert.ok(potential >= 84000);
+    assert.equal(ops, 41_600);
+    assert.ok(potential >= 84_000);
     assert.notEqual(ops, potential);
   });
 

@@ -11,8 +11,8 @@ export const TODAY_SIGNAL_CAP = 7;
 const ROLE_SIGNAL_ORDER: Record<Role, readonly string[]> = {
   operator: ["alarms", "rx", "stale", "deviation", "closure"],
   supervisor: ["rx", "alarms", "closure", "deviation", "stale", "savings"],
-  plant_head: ["savings", "closure", "alarms", "rx", "deviation", "stale"],
-  energy_manager: ["deviation", "closure", "alarms", "rx", "savings", "stale"],
+  plant_head: ["savings", "closure", "alarms", "rx", "md", "deviation", "stale"],
+  energy_manager: ["md", "deviation", "closure", "alarms", "rx", "savings", "stale"],
   sustainability: ["savings", "closure", "deviation", "stale"],
   cfo: ["savings", "closure", "rx"],
   admin: ["alarms", "rx", "savings", "closure", "deviation", "stale"],
@@ -24,6 +24,7 @@ function hrefPermission(href: string): string | null {
   if (href.startsWith("/evidence")) return "route:evidence";
   if (href.startsWith("/reports")) return "route:reports";
   if (href.startsWith("/energy")) return "route:energy";
+  if (href.startsWith("/intensity")) return "route:intensity";
   if (href === "/" || href.startsWith("/?")) return "route:today";
   return null;
 }

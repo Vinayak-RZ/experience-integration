@@ -2,25 +2,18 @@
 
 import { LoadDial } from "@/components/charts/LoadDial";
 import { Panel, StatusChip } from "@/components/ui/primitives";
-import { topConsumersFixture } from "@/lib/analytics";
-
-const LOAD: Record<string, number> = {
-  kiln_1: 108,
-  cm_1: 86,
-  mill_2: 72,
-  comp_2: 54,
-  pack_1: 41,
-};
+import { assetsFixture } from "@/fixtures/demo";
+import { formatIndianNum } from "@/lib/format";
 
 /** Calm health map — colour + label; not a noisy heatmap. */
 export function EquipmentMap() {
-  const rows = topConsumersFixture();
+  const dials = [...assetsFixture].sort((a, b) => b.loadPct - a.loadPct).slice(0, 3);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }} data-equipment>
       <Panel style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-        {rows.slice(0, 3).map((r) => (
-          <LoadDial key={r.assetId} loadPct={LOAD[r.assetId] ?? 50} label={r.label} />
+        {dials.map((a) => (
+          <LoadDial key={a.id} loadPct={a.loadPct} label={a.label} />
         ))}
       </Panel>
 
@@ -37,35 +30,57 @@ export function EquipmentMap() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
             gap: 12,
           }}
         >
-          {rows.map((r) => (
+          {assetsFixture.map((a) => (
             <div
-              key={r.assetId}
+              key={a.id}
               style={{
                 padding: 14,
                 borderRadius: "var(--forge-radius-md)",
                 background:
-                  r.health === "hot"
+                  a.health === "hot"
                     ? "rgba(186, 26, 26, 0.08)"
-                    : r.health === "watch"
+                    : a.health === "watch"
                       ? "rgba(201, 122, 0, 0.08)"
                       : "rgba(27, 107, 58, 0.08)",
               }}
             >
-              <p style={{ margin: 0, fontWeight: 700 }}>{r.label}</p>
+              <p style={{ margin: 0, fontWeight: 700 }}>{a.label}</p>
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  fontSize: 12,
+                  color: "var(--forge-on-surface-variant)",
+                }}
+              >
+                {a.area}
+              </p>
               <p
                 className="tabular"
                 style={{ margin: "6px 0", fontSize: 13, color: "var(--forge-on-surface-variant)" }}
               >
-                Load {LOAD[r.assetId] ?? "—"}%
+                Load {a.loadPct}% · {formatIndianNum(a.kwhMtd)} kWh MTD
+                {a.pf != null ? ` · PF ${formatIndianNum(a.pf, 2)}` : ""}
               </p>
+              {a.mdContributionKva != null ? (
+                <p
+                  className="tabular"
+                  style={{
+                    margin: "0 0 8px",
+                    fontSize: 12,
+                    color: "var(--forge-on-surface-variant)",
+                  }}
+                >
+                  MD contrib {formatIndianNum(a.mdContributionKva)} kVA
+                </p>
+              ) : null}
               <StatusChip
-                tone={r.health === "hot" ? "critical" : r.health === "watch" ? "warning" : "good"}
+                tone={a.health === "hot" ? "critical" : a.health === "watch" ? "warning" : "good"}
               >
-                {r.health === "calm" ? "Calm" : r.health === "watch" ? "Watch" : "Hot"}
+                {a.health === "calm" ? "Calm" : a.health === "watch" ? "Watch" : "Hot"}
               </StatusChip>
             </div>
           ))}

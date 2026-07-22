@@ -15,7 +15,7 @@ import {
 type LocalReport = {
   id: string;
   kind: string;
-  state: "pending_approval" | "approved" | "failed";
+  state: "pending_approval" | "approved" | "failed" | "running";
   periodLabel: string;
 };
 
@@ -89,18 +89,24 @@ function prescriptionAuditCsv(rows: readonly Prescription[]): string {
 export function ExportCentre({
   ledger,
   prescriptions,
+  initialReports,
 }: {
   ledger: LedgerEntry[];
   prescriptions: Prescription[];
+  initialReports?: LocalReport[];
 }) {
-  const [reports, setReports] = useState<LocalReport[]>([
-    {
-      id: "rep_fixture_1",
-      kind: "sustainability_monthly",
-      state: "pending_approval",
-      periodLabel: "Jul 2026",
-    },
-  ]);
+  const [reports, setReports] = useState<LocalReport[]>(
+    initialReports?.length
+      ? initialReports
+      : [
+          {
+            id: "rep_fixture_1",
+            kind: "sustainability_monthly",
+            state: "pending_approval",
+            periodLabel: "Jul 2026",
+          },
+        ],
+  );
   const [status, setStatus] = useState<string | null>(null);
 
   const pending = useMemo(

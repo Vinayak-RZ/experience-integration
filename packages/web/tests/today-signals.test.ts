@@ -68,7 +68,7 @@ describe("Today decision signals", () => {
     );
     assert.match(stale, /last known data/i);
     assert.match(stale, /data-today-board/);
-    assert.match(stale, /data-signal-count="6"/);
+    assert.match(stale, /data-signal-count="7"/);
   });
 
   it("renders partial missing slices without inventing signals", () => {
