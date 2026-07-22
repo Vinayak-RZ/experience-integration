@@ -227,3 +227,25 @@ inventing truth.
 
 Missing sibling routes do not block local construction, but production
 acceptance cannot be claimed until the required upstream contracts land.
+
+## DEC-010 — Auto product/UX priority over public API
+
+**Status:** Accepted · **Date:** 2026-07-22
+
+### Context
+
+The master plan includes a public `/v1` surface in Phase H. Mid-delivery
+direction is to keep Auto execution focused on the Forge control room and
+operational product path.
+
+### Decision
+
+- Ship `packages/api` as the **product BFF** for the web UI only.
+- Defer customer public `/v1`, API keys, and Schemathesis gates until after
+  auth (B), Forge UX (C), and operational surfaces (E) are in place.
+- Do not lead implementation with public-API-first work.
+
+### Consequences
+
+Enterprise integration (Phase H) remains in scope but is sequenced after the
+ops-first product. README and `/api/meta` advertise `public_api: false`.

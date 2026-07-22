@@ -2,25 +2,24 @@
 
 ## Current phase
 
-**Phase A — Workspace and foundation**
+**Phase B — Authentication and tenancy** (starting)
 
-Phase 0 authority, specification, design, and upstream prompts are complete.
-The next work establishes the pnpm workspace, contracts, BFF, PostgreSQL,
-worker, CI, and local runtime.
+Phase A foundation is complete. Auto execution continues into auth/tenancy,
+then Forge UX. Public customer `/v1` remains deferred (Phase H).
 
 ## Phase status
 
 | Phase | Status | Exit gate |
 |-------|--------|-----------|
 | 0 — Authority and specification | Complete | Approved artifacts and explicit upstream blockers |
-| A — Workspace and foundation | Pending | Frozen install, migrations, contracts, tests, builds |
+| A — Workspace and foundation | Complete | Frozen install, migrations, contracts, tests, builds |
 | B — Authentication and tenancy | Pending | Invite/login/plant-switch/RBAC matrix |
 | C — Forge UX system | Pending | Desktop/mobile shell and accessibility baseline |
 | D — Upstream and realtime | Pending | Adapter contracts and resumable SSE |
 | E — Operational control room | Pending | Mobile alarm/Rx and ledger E2E |
 | F — Analytics and analyst | Pending | Dense charts and confirmed analyst handoff |
 | G — Reports and sustainability | Pending | Approved PDF/XLSX and job recovery |
-| H — Enterprise integration | Pending | API/webhook/Entra/Power BI/CDK gates |
+| H — Enterprise integration | Deferred (Auto) | Public API last; UX/ops first |
 | N — Hardening | Pending | Full validation and no high security findings |
 | Cutover — AWS Mumbai pilot | Blocked | Credentials, upstream contracts, and human approval |
 
@@ -38,8 +37,10 @@ worker, CI, and local runtime.
 - Established root project authority, decisions, progress, product, and design
   context.
 - Scaffolded Spec Kit and validated 27 requirements, 10 success criteria, and
-  66 dependency-ordered tasks with no unresolved clarification.
+  66 dependency-ordered tasks.
 - Published ready-to-paste L5 alarm-action and L2 ledger/baseline agent prompts.
+- Migrated to pnpm workspace; added CI, contracts, product BFF, Drizzle,
+  pg-boss worker, and local compose.
 
 ## Active blockers
 
@@ -62,13 +63,13 @@ adapters and CDK synthesis can proceed; real cutover requires human approval.
 
 ## Immediate next work
 
-1. Add CI and the shared L6 contract package.
-2. Scaffold Fastify BFF (product backend only — public `/v1` deferred), PostgreSQL/Drizzle, and pg-boss.
-3. Add the local compose profile and run the Phase A gate.
-4. Continue Auto execution into auth (B) then Forge UX (C); do not lead with public API.
+1. Integrate Better Auth local email/password (no public signup).
+2. Organizations, plants, memberships, RBAC matrix.
+3. Admin invites + Mailpit; optional TOTP; plant switcher.
+4. Then Phase C Forge UX system (tokens, shell, navigation).
 
 ## Deferred by scope
 
-WhatsApp magic links, Redis, full portfolio rollups, complete BRSR filing,
-SAP/Tally writes, SCIM, Hindi, native mobile, and bill-verification product
-claims.
+Public `/v1` / OpenAPI customer API (Phase H — after product UX), WhatsApp
+magic links, Redis, full portfolio rollups, complete BRSR filing, SAP/Tally
+writes, SCIM, Hindi, native mobile, and bill-verification product claims.

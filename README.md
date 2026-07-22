@@ -21,9 +21,12 @@ Platform technical SoT is the **[stamped-external](https://github.com/Vinayak-RZ
 ```text
 external/                 # stamped-external submodule (architecture, contracts, ADRs, design)
 packages/
-  web/                    # Next.js App Router — seeded from external/consumers/stamped-l6
-  api/                    # BFF (planned)
-  worker/                 # PDF/CSV/webhooks jobs (planned P1+)
+  web/                    # Next.js App Router — Forge control room UI
+  api/                    # Product BFF (Fastify) — not public /v1
+  contracts/              # Shared Zod schemas + claim/workflow mappings
+  worker/                 # pg-boss jobs (PostgreSQL; no Redis)
+contracts/upstream/       # Pinned L2/L4/L5 OpenAPI snapshots (fixtures until live)
+infra/                    # Local docker compose + Mailpit
 docs/architecture/        # Repo-local boundary snapshot
 .cursor/                  # Coding skills/rules (cursor-config-coding)
 ```
@@ -37,10 +40,14 @@ cd experience-integration
 git submodule update --init --recursive
 corepack enable
 pnpm install
+cp .env.example .env
 pnpm validate
+# with local Postgres:
+# DATABASE_URL=postgres://stamped:stamped@127.0.0.1:5432/stamped_l6 pnpm compose:smoke
 ```
 
-Agents / CI must run `git submodule update --init` before build. Contracts: `./external/scripts/contract-check.sh`.
+Agents / CI must run `git submodule update --init` before build. Contracts:
+`./external/scripts/contract-check.sh` and `pnpm contracts:upstream`.
 
 ## Read first
 
