@@ -33,7 +33,6 @@ export default function OverviewPage() {
         `${critical} critical alarms`,
         `${formatInr(demoNeedsReviewInr())} open prescriptions`,
         DEMO_PLANT.shift,
-        "Telemetry fresh",
       ]}
       criticalAlarmCount={critical}
     >

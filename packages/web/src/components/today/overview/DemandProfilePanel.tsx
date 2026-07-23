@@ -6,13 +6,25 @@ import { Panel } from "@/components/ui/primitives";
 import { OVERVIEW_DEMAND_PROFILE } from "@/fixtures/overview-demo";
 import { FORGE_ECHARTS_THEME, FORGE_ECHARTS_THEME_NAME } from "@/components/charts/forgeTheme";
 
+type DemandPoint = (typeof OVERVIEW_DEMAND_PROFILE)[number];
+
 const TOD_COLOR: Record<string, string> = {
   off: "#00666b",
   shoulder: "#c97a00",
   peak: "#ba1a1a",
 };
 
-export function DemandProfilePanel() {
+export function DemandProfilePanel({
+  profile = OVERVIEW_DEMAND_PROFILE,
+  plantMw,
+  peakMw = 98,
+  peakHour = "20:00",
+}: {
+  profile?: DemandPoint[];
+  plantMw?: number;
+  peakMw?: number;
+  peakHour?: string;
+}) {
   const hostRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ECharts | null>(null);
 
@@ -46,14 +58,14 @@ export function DemandProfilePanel() {
           formatter: (params: unknown) => {
             const row = Array.isArray(params) ? params[0] : params;
             const idx = (row as { dataIndex?: number })?.dataIndex ?? 0;
-            const d = OVERVIEW_DEMAND_PROFILE[idx];
+            const d = profile[idx];
             if (!d) return "";
             return [`<strong>${d.hour}</strong>`, `Demand: ${d.mw} MW`, `TOD slot: ${d.tod}`].join("<br/>");
           },
         },
         xAxis: {
           type: "category",
-          data: OVERVIEW_DEMAND_PROFILE.map((d) => d.hour),
+          data: profile.map((d) => d.hour),
           axisLabel: { fontSize: 9.5, color: "var(--forge-on-surface-variant)", interval: 3 },
           axisLine: { lineStyle: { color: "var(--forge-outline-variant)" } },
           axisTick: { show: false },
@@ -66,7 +78,7 @@ export function DemandProfilePanel() {
         series: [
           {
             type: "bar",
-            data: OVERVIEW_DEMAND_PROFILE.map((d) => ({
+            data: profile.map((d) => ({
               value: d.mw,
               itemStyle: { color: TOD_COLOR[d.tod], opacity: 0.85, borderRadius: [3, 3, 0, 0] },
             })),
@@ -77,7 +89,7 @@ export function DemandProfilePanel() {
           itemStyle: { color: "rgba(186,26,26,0.05)" },
           data: [[{ xAxis: "18:00" }, { xAxis: "22:00" }]],
         },
-      });
+      }, true);
     }
 
     void mount();
@@ -87,7 +99,7 @@ export function DemandProfilePanel() {
       chartRef.current?.dispose();
       chartRef.current = null;
     };
-  }, []);
+  }, [profile]);
 
   return (
     <Panel style={{ padding: 20, display: "flex", flexDirection: "column" }}>
@@ -115,7 +127,13 @@ export function DemandProfilePanel() {
       />
 
       <div style={{ marginTop: 8, fontSize: 11, color: "var(--forge-on-surface-variant)" }}>
-        Peak demand <strong style={{ color: "var(--forge-error)" }}>98 MW</strong> at 20:00 · TOD penalty window 18:00–22:00 · AI
+        {plantMw != null ? (
+          <>
+            Current demand <strong style={{ color: "var(--forge-primary)" }}>{plantMw.toFixed(1)} MW</strong>
+            {" · "}
+          </>
+        ) : null}
+        Peak demand <strong style={{ color: "var(--forge-error)" }}>{peakMw} MW</strong> at {peakHour} · TOD penalty window 18:00–22:00 · AI
         shifting <strong style={{ color: "var(--forge-tertiary)" }}>280 kW</strong> off-peak
       </div>
     </Panel>

@@ -124,6 +124,7 @@ export interface ConnectionStatus {
 
 export type NavKey =
   | "today"
+  | "live"
   | "alarms"
   | "prescriptions"
   | "evidence"

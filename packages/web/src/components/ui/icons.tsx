@@ -304,3 +304,13 @@ export function CircleDot(p: IconProps) {
     </Icon>
   );
 }
+
+export function Radio(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M4.9 4.9a10 10 0 0 1 14.2 0" />
+      <path d="M7.8 7.8a6 6 0 0 1 8.4 0" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" />
+    </Icon>
+  );
+}

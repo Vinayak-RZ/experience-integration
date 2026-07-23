@@ -5,23 +5,12 @@ import { useCountUp } from "@/hooks/useCountUp";
 import { formatIndianNum, formatInr } from "@/lib/format";
 import { Gauge } from "@/components/charts/Gauge";
 import { Panel } from "@/components/ui/primitives";
-import { CountPill, IconBadge, KPI_ICONS, SeverityStrip } from "@/components/ui/indicators";
+import { CountPill, IconBadge, KPI_ICONS } from "@/components/ui/indicators";
 import { Sparkles, TrendingDown, TrendingUp } from "@/components/ui/icons";
 
-function HeroCard({
-  hero,
-  children,
-  style,
-}: {
-  hero?: boolean;
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
+function HeroCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <Panel
-      className={hero ? "forge-kpi-hero-card forge-kpi-hero-card--hero" : "forge-kpi-hero-card"}
-      style={style}
-    >
+    <Panel className="forge-kpi-hero-card" style={style}>
       {children}
     </Panel>
   );
@@ -31,12 +20,11 @@ export function KpiHeroStrip() {
   const savings = useCountUp(OVERVIEW_KPIS.savings.value);
   const energy = useCountUp(OVERVIEW_KPIS.energy.value);
   const score = useCountUp(OVERVIEW_KPIS.score.value);
-  const anomalies = useCountUp(OVERVIEW_KPIS.anomalies.total);
   const carbon = useCountUp(OVERVIEW_KPIS.carbon.value);
 
   return (
     <div className="forge-kpi-hero-strip" role="list" aria-label="Plant KPIs">
-      <HeroCard hero>
+      <HeroCard>
         <IconBadge icon={KPI_ICONS.savings} tone="primary" size={34} iconSize={17} />
         <p className="forge-eyebrow" style={{ color: "var(--forge-primary)", marginTop: 0 }}>
           Stamped Savings This Month
@@ -86,23 +74,6 @@ export function KpiHeroStrip() {
           <span title={`${OVERVIEW_KPIS.score.grade} Grade`} style={{ display: "inline-flex" }}>
             <IconBadge icon={Sparkles} tone="primary" size={26} iconSize={13} />
           </span>
-        </div>
-      </HeroCard>
-
-      <HeroCard>
-        <IconBadge icon={KPI_ICONS.anomalies} tone="critical" size={34} iconSize={17} />
-        <p className="forge-eyebrow">Live Anomalies</p>
-        <div className="forge-num-display tabular" style={{ fontSize: "2.4rem", marginTop: 6 }}>
-          {Math.round(anomalies)}
-        </div>
-        <div style={{ marginTop: 8 }}>
-          <SeverityStrip
-            items={[
-              { tone: "critical", count: OVERVIEW_KPIS.anomalies.critical, label: "Critical" },
-              { tone: "warning", count: OVERVIEW_KPIS.anomalies.warning, label: "Warning" },
-              { tone: "info", count: OVERVIEW_KPIS.anomalies.info, label: "Info" },
-            ]}
-          />
         </div>
       </HeroCard>
 

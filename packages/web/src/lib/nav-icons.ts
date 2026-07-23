@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 import type { NavKey } from "@/lib/types";
+import type { NavGroupId } from "@/lib/navigation";
 import {
   Activity,
   AlertTriangle,
@@ -10,6 +11,7 @@ import {
   Leaf,
   Map,
   MessageSquare,
+  Radio,
   Settings,
   Users,
   Wrench,
@@ -20,6 +22,7 @@ type IconComp = ComponentType<SVGProps<SVGSVGElement> & { size?: number; strokeW
 /** Icon map for primary shell navigation. */
 export const NAV_ICONS: Record<NavKey, IconComp> = {
   today: LayoutDashboard,
+  live: Radio,
   energy: BarChart3,
   equipment: Activity,
   alarms: AlertTriangle,
@@ -33,6 +36,14 @@ export const NAV_ICONS: Record<NavKey, IconComp> = {
   evidence: ClipboardList,
   integrations: Settings,
   admin: Settings,
+};
+
+/** Icon map for collapsible sidebar groups. */
+export const NAV_GROUP_ICONS: Record<NavGroupId, IconComp> = {
+  operations: AlertTriangle,
+  insights: BarChart3,
+  reports: FileText,
+  administration: Settings,
 };
 
 export { Factory } from "@/components/ui/icons";

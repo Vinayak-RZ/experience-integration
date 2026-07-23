@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Panel, PanelHeader } from "@/components/ui/primitives";
 import { StatusDotByStatus, StatusLegend, SeverityTag } from "@/components/ui/indicators";
 import {
-  OVERVIEW_MACHINE_SUMMARY,
   OVERVIEW_MACHINES,
   type MachineStatus,
   type OverviewMachine,
@@ -25,7 +24,22 @@ const STYLE: Record<
 
 const LEGEND: MachineStatus[] = ["CRITICAL", "WARNING", "GOOD", "OPTIMIZED", "INFO", "OFFLINE"];
 
-export function PlantHealthMap() {
+function summarize(machines: OverviewMachine[]): string {
+  const counts: Record<string, number> = {};
+  for (const m of machines) counts[m.status] = (counts[m.status] ?? 0) + 1;
+  return [
+    counts.CRITICAL ? `${counts.CRITICAL} Critical` : null,
+    counts.WARNING ? `${counts.WARNING} Warning` : null,
+    counts.GOOD ? `${counts.GOOD} Good` : null,
+    counts.OFFLINE ? `${counts.OFFLINE} Offline` : null,
+    counts.INFO ? `${counts.INFO} Info` : null,
+    counts.OPTIMIZED ? `${counts.OPTIMIZED} Optimized` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+export function PlantHealthMap({ machines = OVERVIEW_MACHINES }: { machines?: OverviewMachine[] }) {
   const [hover, setHover] = useState<{ m: OverviewMachine; x: number; y: number } | null>(null);
 
   return (
@@ -35,7 +49,7 @@ export function PlantHealthMap() {
       <div
         className="forge-plant-health-grid"
       >
-        {OVERVIEW_MACHINES.map((m) => {
+        {machines.map((m) => {
           const s = STYLE[m.status];
           return (
             <div
@@ -93,7 +107,7 @@ export function PlantHealthMap() {
           textAlign: "center",
         }}
       >
-        {OVERVIEW_MACHINE_SUMMARY}
+        {summarize(machines)}
       </div>
 
       {hover ? (

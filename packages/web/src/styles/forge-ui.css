@@ -168,9 +168,17 @@
   height: 100%;
 }
 
-.forge-kpi-hero-card--hero {
+.forge-kpi-card {
+  min-width: 0;
+}
+
+.forge-kpi-card--accent {
   border-left: 4px solid var(--forge-primary);
-  box-shadow: var(--forge-shadow-hero);
+}
+
+.forge-kpi-card__footnote {
+  margin: 6px 0 0;
+  font-size: 12px;
 }
 
 .forge-tooltip {
@@ -659,10 +667,6 @@
   min-height: 108px;
 }
 
-.forge-signal-card--featured {
-  box-shadow: var(--forge-shadow-hero);
-}
-
 .forge-signal-card--critical { border-left-color: var(--forge-error); }
 .forge-signal-card--warning { border-left-color: var(--forge-warning); }
 .forge-signal-card--good { border-left-color: var(--forge-tertiary); }
@@ -954,4 +958,200 @@
   grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
   gap: 4px;
   margin-top: 16px;
+}
+
+.forge-chart-legend {
+  display: flex;
+  gap: 18px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--forge-on-surface-variant);
+  flex-wrap: wrap;
+}
+
+.forge-chart-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.forge-chart-legend__swatch {
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.forge-chart-legend__swatch--line {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.forge-chart-legend__swatch--dashed {
+  width: 16px;
+  height: 0;
+  border-top: 2px dashed var(--forge-outline);
+}
+
+.forge-chart-legend__swatch--area {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.forge-chart-legend__swatch--dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.forge-chart-stats {
+  display: flex;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--forge-outline-variant);
+  flex-wrap: wrap;
+}
+
+.forge-chart-stats__cell {
+  flex: 1;
+  min-width: 140px;
+}
+
+.forge-chart-stats__label {
+  font-size: 10.5px;
+  color: var(--forge-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.forge-chart-stats__value {
+  font-family: var(--forge-font-display);
+  font-weight: 700;
+  font-size: 15px;
+  margin-top: 2px;
+}
+
+.forge-live-status__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.forge-live-status__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.forge-live-status__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.forge-live-status__live-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--forge-tertiary);
+}
+
+.forge-live-status__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--forge-on-surface-variant);
+}
+
+.forge-live-status__metrics {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.forge-live-status__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.forge-live-status__metric-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--forge-on-surface-variant);
+}
+
+.forge-live-status__metric-value {
+  font-family: var(--forge-font-display);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--forge-on-surface);
+}
+
+.forge-pulse-dot--muted {
+  opacity: 0.45;
+  animation: none;
+}
+
+.forge-empty {
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--forge-on-surface-variant);
+}
+
+.forge-empty__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--forge-surface-container-low);
+  color: var(--forge-on-surface-variant);
+  margin-bottom: 10px;
+}
+
+.forge-empty__title {
+  margin: 0;
+  font-family: var(--forge-font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--forge-on-surface);
+}
+
+.forge-empty__desc {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.forge-empty__action {
+  margin-top: 12px;
+}
+
+.forge-skeleton {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--forge-surface-container) 0%,
+    var(--forge-surface-container-high) 50%,
+    var(--forge-surface-container) 100%
+  );
+  background-size: 200% 100%;
+  animation: forge-skeleton 1.2s ease-in-out infinite;
+}
+
+.forge-separator {
+  border: none;
+  border-top: 1px solid var(--forge-outline-variant);
+  margin: 0;
+  width: 100%;
 }

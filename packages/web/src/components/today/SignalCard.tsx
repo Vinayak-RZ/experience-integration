@@ -9,19 +9,14 @@ export function SignalCard({
   value,
   hint,
   tone,
-  featured,
 }: {
   label: string;
   value: string;
   hint?: string;
   tone: StatusTone;
-  featured?: boolean;
 }) {
   return (
-    <article
-      className={`forge-signal-card forge-signal-card--${tone}${featured ? " forge-signal-card--featured" : ""}`}
-      data-tone={tone}
-    >
+    <article className={`forge-signal-card forge-signal-card--${tone}`} data-tone={tone}>
       <div className="forge-signal-card__dot" aria-hidden>
         <StatusDot tone={tone} size={7} pulse={tone === "critical"} />
       </div>

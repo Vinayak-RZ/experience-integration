@@ -4,7 +4,9 @@ import { LoadDial } from "@/components/charts/LoadDial";
 import { Panel } from "@/components/ui/primitives";
 import { OVERVIEW_DIALS } from "@/fixtures/overview-demo";
 
-export function DialBank() {
+type DialRow = { name: string; load: number; sub: string };
+
+export function DialBank({ dials = OVERVIEW_DIALS }: { dials?: DialRow[] }) {
   return (
     <Panel style={{ padding: 20 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -25,7 +27,7 @@ export function DialBank() {
           marginTop: 12,
         }}
       >
-        {OVERVIEW_DIALS.map((d) => (
+        {dials.map((d) => (
           <div
             key={d.name}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}

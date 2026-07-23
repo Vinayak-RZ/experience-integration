@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/shell/AppShell";
-import { PageHead, Panel } from "@/components/ui/primitives";
+import { PageHead } from "@/components/ui/primitives";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { SavingsLedger } from "@/components/ledger/SavingsLedger";
 import { ExportCentre } from "@/components/reports/ExportCentre";
 import {
@@ -35,20 +36,19 @@ export default function ReportsPage() {
       <PageHead eyebrow="Value" title="Reports & ledger" />
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div className="forge-kpi-strip">
-          <Panel style={{ boxShadow: "var(--forge-shadow-hero)" }}>
-            <p className="forge-eyebrow">Ops-confirmed MTD</p>
-            <p className="forge-num-display tabular">{formatInr(ops)}</p>
-            <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--forge-warning)" }}>
-              Not bill-verified
-            </p>
-          </Panel>
-          <Panel>
-            <p className="forge-eyebrow">Addressable potential</p>
-            <p className="forge-num-display tabular">{formatInr(potential)}</p>
-            <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
-              Open modeled + pending value
-            </p>
-          </Panel>
+          <KpiCard
+            eyebrow="Ops-confirmed MTD"
+            value={formatInr(ops)}
+            accent="primary"
+            footnote={<span style={{ color: "var(--forge-warning)" }}>Not bill-verified</span>}
+          />
+          <KpiCard
+            eyebrow="Addressable potential"
+            value={formatInr(potential)}
+            footnote={
+              <span style={{ color: "var(--forge-on-surface-variant)" }}>Open modeled + pending value</span>
+            }
+          />
         </div>
         <ExportCentre
           ledger={ledgerFixture}

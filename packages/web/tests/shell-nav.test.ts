@@ -8,6 +8,7 @@ import { describe, it } from "node:test";
 import {
   canAccessRoute,
   composeNav,
+  composeNavTree,
   mobileDock,
   navForRole,
   sanitizePins,
@@ -76,6 +77,27 @@ describe("role-aware navigation", () => {
     assert.ok(primary.some((i) => i.key === "evidence"));
     assert.equal(reveal.some((i) => i.key === "evidence"), false);
   });
+
+  it("groups navigation into collapsible sections instead of a flat list", () => {
+    const tree = composeNavTree("plant_head", ["evidence"], { active: "energy" });
+    assert.ok(tree.standalone.some((i) => i.key === "today"));
+    assert.ok(tree.standalone.some((i) => i.key === "live"));
+    assert.ok(tree.standalone.some((i) => i.key === "analyst"));
+    assert.equal(tree.groups.length >= 3, true);
+    const insights = tree.groups.find((g) => g.id === "insights");
+    assert.ok(insights?.items.some((i) => i.key === "energy"));
+    assert.equal(insights?.defaultOpen, true);
+    const reports = tree.groups.find((g) => g.id === "reports");
+    assert.ok(reports?.items.some((i) => i.key === "evidence"));
+    assert.equal(reports?.defaultOpen, true);
+  });
+
+  it("hides empty groups for restricted roles", () => {
+    const tree = composeNavTree("cfo", [], { active: "reports" });
+    assert.equal(tree.groups.some((g) => g.id === "operations"), false);
+    assert.ok(tree.groups.some((g) => g.id === "reports"));
+    assert.equal(tree.standalone.some((i) => i.key === "analyst"), true);
+  });
 });
 
 describe("responsive Forge shell", () => {
@@ -83,7 +105,8 @@ describe("responsive Forge shell", () => {
     assert.match(shellCss, /min-width:\s*900px/);
     assert.match(shellCss, /max-width:\s*899px/);
     assert.match(shellCss, /\.forge-shell__dock/);
-    assert.match(shellCss, /\.forge-shell__sidebar/);
+    assert.match(shellCss, /\.forge-shell__nav-group/);
+    assert.match(shellCss, /\.forge-shell__nav-sub/);
     assert.match(shellCss, /height:\s*100dvh/);
     assert.match(shellCss, /overflow:\s*hidden/);
   });
@@ -106,8 +129,7 @@ describe("responsive Forge shell", () => {
     assert.match(html, /data-shell="desktop-nav"/);
     assert.match(html, /data-shell="mobile-dock"/);
     assert.match(html, /Live updates offline/);
-    assert.match(html, /SSE Offline/);
-    assert.match(html, /Stamped Energy/);
+    assert.match(html, /Stamped/);
     // CFO must not see Alarms in primary nav
     assert.equal(html.includes(">Alarms<"), false);
     assert.match(html, /Reports/);

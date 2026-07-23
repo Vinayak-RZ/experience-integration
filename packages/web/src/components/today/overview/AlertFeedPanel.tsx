@@ -3,8 +3,11 @@
 import { useMemo, useState } from "react";
 import { Panel } from "@/components/ui/primitives";
 import { FilterIconBtn, SeverityTag } from "@/components/ui/indicators";
+import { EmptyState } from "@/components/ui/empty";
 import { AlertTriangle, CheckCircle, Filter } from "@/components/ui/icons";
 import { OVERVIEW_ALERTS, type AlertSeverity } from "@/fixtures/overview-demo";
+
+type AlertRow = (typeof OVERVIEW_ALERTS)[number];
 
 const BAR: Record<AlertSeverity, string> = {
   CRITICAL: "var(--forge-error)",
@@ -29,13 +32,13 @@ const FILTERS = [
 
 type FilterKey = (typeof FILTERS)[number]["key"];
 
-export function AlertFeedPanel() {
+export function AlertFeedPanel({ alerts = OVERVIEW_ALERTS }: { alerts?: AlertRow[] }) {
   const [filter, setFilter] = useState<FilterKey>("All");
 
   const rows = useMemo(() => {
-    if (filter === "All") return OVERVIEW_ALERTS;
-    return OVERVIEW_ALERTS.filter((a) => a.severity === filter.toUpperCase());
-  }, [filter]);
+    const source = filter === "All" ? alerts : alerts.filter((a) => a.severity === filter.toUpperCase());
+    return source;
+  }, [filter, alerts]);
 
   return (
     <Panel style={{ display: "flex", flexDirection: "column", padding: 0 }}>
@@ -113,9 +116,11 @@ export function AlertFeedPanel() {
           </div>
         ))}
         {rows.length === 0 ? (
-          <div style={{ padding: 24, textAlign: "center", color: "var(--forge-on-surface-variant)", fontSize: 13 }}>
-            No {filter.toLowerCase()} alerts in the current window.
-          </div>
+          <EmptyState
+            icon={Filter}
+            title={`No ${filter.toLowerCase()} alerts`}
+            description="Nothing in the current window matches this filter."
+          />
         ) : null}
       </div>
     </Panel>

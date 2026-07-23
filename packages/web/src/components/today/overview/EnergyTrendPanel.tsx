@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ECharts, EChartsCoreOption } from "echarts/core";
 import { Panel } from "@/components/ui/primitives";
+import { ChartLegend, ChartStatRow } from "@/components/charts/ChartLegend";
 import {
   OVERVIEW_CHART_ANNOTATIONS,
   OVERVIEW_TODAY_DAY,
@@ -227,17 +228,13 @@ export function EnergyTrendPanel() {
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 18, marginTop: 12, fontSize: 11, color: "var(--forge-on-surface-variant)", flexWrap: "wrap" }}>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 16, height: 0, borderTop: "2px dashed var(--forge-outline)" }} /> Without Stamped Baseline
-        </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 16, height: 3, background: "var(--forge-primary)", borderRadius: 2 }} /> Actual Consumption
-        </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 12, height: 12, background: "rgba(0,102,107,0.18)", borderRadius: 2 }} /> Savings Zone
-        </span>
-      </div>
+      <ChartLegend
+        items={[
+          { label: "Without Stamped Baseline", variant: "dashed", color: "var(--forge-outline)" },
+          { label: "Actual Consumption", variant: "line", color: "var(--forge-primary)" },
+          { label: "Savings Zone", variant: "area", color: "rgba(0,102,107,0.18)" },
+        ]}
+      />
 
       <div
         ref={hostRef}
@@ -254,36 +251,13 @@ export function EnergyTrendPanel() {
         ))}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          marginTop: 16,
-          paddingTop: 14,
-          borderTop: "1px solid var(--forge-outline-variant)",
-          flexWrap: "wrap",
-        }}
-      >
-        {[
-          ["Avg daily saving", OVERVIEW_TREND_STATS.avgDailySaving],
-          ["Peak excess", OVERVIEW_TREND_STATS.peakExcess],
-          ["Best day", OVERVIEW_TREND_STATS.bestDay],
-        ].map(([k, v], i) => (
-          <div
-            key={k}
-            style={{
-              flex: 1,
-              minWidth: 140,
-              paddingLeft: i ? 16 : 0,
-              borderLeft: i ? "1px solid var(--forge-outline-variant)" : "none",
-            }}
-          >
-            <div style={{ fontSize: 10.5, color: "var(--forge-on-surface-variant)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              {k}
-            </div>
-            <div style={{ fontFamily: "var(--forge-font-display)", fontWeight: 700, fontSize: 15, marginTop: 2 }}>{v}</div>
-          </div>
-        ))}
-      </div>
+      <ChartStatRow
+        items={[
+          { label: "Avg daily saving", value: OVERVIEW_TREND_STATS.avgDailySaving },
+          { label: "Peak excess", value: OVERVIEW_TREND_STATS.peakExcess },
+          { label: "Best day", value: OVERVIEW_TREND_STATS.bestDay },
+        ]}
+      />
     </Panel>
   );
 }

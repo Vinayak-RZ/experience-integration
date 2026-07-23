@@ -105,6 +105,7 @@ export function LoadDial({
           stroke={valueColor}
           strokeWidth={2.5}
           strokeLinecap="round"
+          style={{ transition: "all 0.8s cubic-bezier(.2,.8,.2,1)" }}
         />
         <circle cx={cx} cy={cy} r={5} fill="var(--forge-secondary)" />
         <circle cx={cx} cy={cy} r={2} fill={valueColor} />

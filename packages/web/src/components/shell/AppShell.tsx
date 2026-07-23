@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  composeNav,
-  mobileDock,
-  readCollapsed,
-  readPins,
-  writeCollapsed,
-} from "@/lib/navigation";
+import { mobileDock, readCollapsed, readPins, writeCollapsed } from "@/lib/navigation";
 import { NAV_ICONS } from "@/lib/nav-icons";
 import {
   Factory,
@@ -16,9 +10,11 @@ import {
   PanelLeftOpen,
 } from "@/components/ui/icons";
 import type { ConnectionStatus, NavKey, Role } from "@/lib/types";
-import { PrimaryButton, Sheet } from "@/components/ui/primitives";
+import { Sheet } from "@/components/ui/primitives";
 import { ContextualAnalyst } from "@/components/analyst/ContextualAnalyst";
 import { WebVitalsReporter } from "@/components/telemetry/WebVitalsReporter";
+import { SidebarNav } from "@/components/shell/SidebarNav";
+import { AppTopbar } from "@/components/shell/AppTopbar";
 
 function sseMeta(connection: ConnectionStatus): {
   label: string;
@@ -80,9 +76,9 @@ export function AppShell({
     setCollapsed(readCollapsed(storage));
   }, []);
 
-  const { primary, reveal } = useMemo(() => composeNav(role, pins), [role, pins]);
   const dock = useMemo(() => mobileDock(role, pins), [role, pins]);
   const sse = useMemo(() => sseMeta(connection), [connection]);
+  const forceOpenGroups = criticalAlarmCount > 0 ? (["operations"] as const) : [];
 
   function onToggleCollapse() {
     const next = !collapsed;
@@ -90,31 +86,28 @@ export function AppShell({
     writeCollapsed(typeof window !== "undefined" ? window.localStorage : null, next);
   }
 
-  const navLinks = (items: typeof primary) =>
-    items.map((item) => {
-      const Icon = NAV_ICONS[item.key];
-      const isActive = active === item.key;
-      return (
-        <Link
-          key={item.key}
-          href={item.href}
-          aria-current={isActive ? "page" : undefined}
-          title={item.label}
-          className="forge-shell__nav-link"
-          onClick={() => setMobileNavOpen(false)}
-        >
-          <Icon size={18} strokeWidth={isActive ? 2.4 : 2} aria-hidden />
-          {!collapsed ? (
-            <span className="forge-shell__nav-label">{item.label}</span>
-          ) : null}
-          {!collapsed && item.key === "alarms" && criticalAlarmCount > 0 ? (
-            <span className="tabular forge-shell__nav-badge" aria-label={`${criticalAlarmCount} critical`}>
-              {criticalAlarmCount}
-            </span>
-          ) : null}
-        </Link>
-      );
-    });
+  const desktopNav = (
+    <SidebarNav
+      role={role}
+      pins={pins}
+      active={active}
+      collapsed={collapsed}
+      criticalAlarmCount={criticalAlarmCount}
+      forceOpenGroups={[...forceOpenGroups]}
+    />
+  );
+
+  const mobileNav = (
+    <SidebarNav
+      role={role}
+      pins={pins}
+      active={active}
+      collapsed={false}
+      criticalAlarmCount={criticalAlarmCount}
+      forceOpenGroups={[...forceOpenGroups]}
+      onNavigate={() => setMobileNavOpen(false)}
+    />
+  );
 
   return (
     <div
@@ -126,30 +119,14 @@ export function AppShell({
         Skip to main content
       </a>
 
-      <header className="forge-shell__topbar">
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            className="forge-shell__menu-btn"
-            aria-label="Open navigation"
-            aria-expanded={mobileNavOpen}
-            onClick={() => setMobileNavOpen(true)}
-          >
-            Menu
-          </button>
-          <strong className="forge-shell__brand">Stamped Energy</strong>
-          <span className="forge-shell__plant">{plantName}</span>
-          <span
-            aria-live="polite"
-            className={`forge-shell__sse ${sse.live ? "forge-shell__sse--live" : "forge-shell__sse--warn"}`}
-          >
-            SSE {sse.label}
-          </span>
-        </div>
-        <span ref={askAnalystRef} tabIndex={-1} style={{ display: "inline-flex" }}>
-          <PrimaryButton onClick={() => setAnalystOpen(true)}>Ask Analyst</PrimaryButton>
-        </span>
-      </header>
+      <AppTopbar
+        plantName={plantName}
+        connection={connection}
+        mobileNavOpen={mobileNavOpen}
+        onOpenNav={() => setMobileNavOpen(true)}
+        onAskAnalyst={() => setAnalystOpen(true)}
+        askAnalystRef={askAnalystRef}
+      />
 
       <div className="forge-shell__body">
         <nav
@@ -172,17 +149,7 @@ export function AppShell({
             </div>
           ) : null}
 
-          <div className="forge-shell__nav-scroll forge-scroll-thin">
-            {navLinks(primary)}
-            {reveal.length > 0 && !collapsed ? (
-              <div className="forge-shell__reveal">
-                <p className="forge-eyebrow" style={{ margin: "12px 4px 6px" }}>
-                  More
-                </p>
-                {navLinks(reveal)}
-              </div>
-            ) : null}
-          </div>
+          <div className="forge-shell__nav-scroll forge-scroll-thin">{desktopNav}</div>
 
           <button
             type="button"
@@ -230,16 +197,8 @@ export function AppShell({
       </nav>
 
       <Sheet open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} title="Navigate">
-        <nav aria-label="Mobile full" style={{ display: "grid", gap: 4 }}>
-          {navLinks(primary)}
-          {reveal.length > 0 ? (
-            <>
-              <p className="forge-eyebrow" style={{ margin: "12px 0 4px" }}>
-                More
-              </p>
-              {navLinks(reveal)}
-            </>
-          ) : null}
+        <nav aria-label="Mobile full" className="forge-shell__mobile-nav">
+          {mobileNav}
           <p style={{ marginTop: 16, fontSize: 12, color: "var(--forge-on-surface-variant)" }}>
             Role: {role.replaceAll("_", " ")} · {plantName}
           </p>

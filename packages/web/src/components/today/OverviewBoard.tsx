@@ -20,19 +20,11 @@ import { KpiHeroStrip } from "@/components/today/overview/KpiHeroStrip";
 
 import { EnergyTrendPanel } from "@/components/today/overview/EnergyTrendPanel";
 
-import { PlantHealthMap } from "@/components/today/overview/PlantHealthMap";
-
-import { DialBank } from "@/components/today/overview/DialBank";
-
 import { PrescriptionsOverviewPanel } from "@/components/today/overview/PrescriptionsOverviewPanel";
 
 import { TopConsumersTable } from "@/components/today/overview/TopConsumersTable";
 
 import { SectionDonut } from "@/components/today/overview/SectionDonut";
-
-import { DemandProfilePanel } from "@/components/today/overview/DemandProfilePanel";
-
-import { AlertFeedPanel } from "@/components/today/overview/AlertFeedPanel";
 
 
 
@@ -103,9 +95,6 @@ export function OverviewBoard({
                 hint={s.hint}
 
                 tone={s.tone === "good" ? "good" : s.tone}
-
-                featured={i === 0}
-
               />
 
             </Link>
@@ -120,43 +109,15 @@ export function OverviewBoard({
 
 
 
-        <div className="forge-grid-60-40">
-
-          <EnergyTrendPanel />
-
-          <PlantHealthMap />
-
-        </div>
-
-
-
-        <DialBank />
-
-
+        <EnergyTrendPanel />
 
         <div className="forge-grid-38-62">
-
           <PrescriptionsOverviewPanel prescriptions={prescriptions} />
-
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
             <TopConsumersTable />
-
-            <div className="forge-grid-2">
-
-              <SectionDonut />
-
-              <DemandProfilePanel />
-
-            </div>
-
+            <SectionDonut />
           </div>
-
         </div>
-
-
-
-        <AlertFeedPanel />
 
       </div>
 
