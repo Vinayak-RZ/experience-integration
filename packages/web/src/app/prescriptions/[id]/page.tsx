@@ -11,6 +11,7 @@ import {
   demoCriticalAlarmCount,
   prescriptionsFixture,
 } from "@/fixtures/demo";
+import { resolveEvidenceIdForRx } from "@/fixtures/evidence-samples";
 import { buildEvidencePack, resolveEvidenceScope } from "@/lib/evidence";
 import { claimBadgeLabel, formatInr } from "@/lib/format";
 
@@ -40,6 +41,7 @@ export default async function PrescriptionDetailPage({
     prescriptions: prescriptionsFixture,
   });
   const pack = buildEvidencePack(scope, { baselineAvailable: true });
+  const evidenceId = resolveEvidenceIdForRx(rx.id);
   const evidenceRows = [
     { id: "why", unit: "Finding", value: rx.why, comment: pack.lineage.ruleId },
     {
@@ -114,9 +116,13 @@ export default async function PrescriptionDetailPage({
             rows={evidenceRows}
           />
           <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--forge-on-surface-variant)" }}>
-            Sources: {pack.lineage.sources.join(" · ")}. Evidence opens from prescriptions — not a
-            separate primary screen.
+            Sources: {pack.lineage.sources.join(" · ")}.
           </p>
+          {evidenceId ? (
+            <Link href={`/evidence/${evidenceId}`} style={{ ...linkBtn, marginTop: 16 }}>
+              Open full evidence
+            </Link>
+          ) : null}
         </Panel>
 
         <Panel>

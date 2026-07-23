@@ -1,15 +1,18 @@
+import { redirect } from "next/navigation";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
-import { EvidenceExplorer } from "@/components/evidence/EvidenceExplorer";
+import { EvidenceIndex } from "@/components/evidence/EvidenceIndex";
 import {
   DEMO_SHELL_ROLE,
   DEMO_PLANT,
   alarmsFixture,
   connectionFixture,
   demoCriticalAlarmCount,
-  prescriptionsFixture,
 } from "@/fixtures/demo";
-import { buildEvidencePack, resolveEvidenceScope } from "@/lib/evidence";
+import {
+  evidenceSamplesFixture,
+  resolvePrimaryEvidenceId,
+} from "@/fixtures/evidence-samples";
 
 export default async function EvidencePage({
   searchParams,
@@ -17,15 +20,29 @@ export default async function EvidencePage({
   searchParams: Promise<{ alarmId?: string; rxId?: string }>;
 }) {
   const sp = await searchParams;
-  const scope = resolveEvidenceScope({
-    plantId: DEMO_PLANT.plantId,
+
+  const evidenceId = resolvePrimaryEvidenceId({
     alarmId: sp.alarmId,
     rxId: sp.rxId,
-    alarms: alarmsFixture,
-    prescriptions: prescriptionsFixture,
   });
-  // ponytail: fixture Auto — baseline stays gated until L2_FEATURE_BASELINES
-  const pack = buildEvidencePack(scope, { baselineAvailable: false });
+
+  if (evidenceId) {
+    redirect(`/evidence/${evidenceId}`);
+  }
+
+  if (sp.alarmId) {
+    const alarm = alarmsFixture.find((a) => a.id === sp.alarmId);
+    const fallbackId = resolvePrimaryEvidenceId({
+      findingId: alarm?.findingId,
+      rxId: alarm?.relatedPrescriptionId,
+    });
+    if (fallbackId) redirect(`/evidence/${fallbackId}`);
+  }
+
+  if (sp.rxId) {
+    const rxEvidenceId = resolvePrimaryEvidenceId({ rxId: sp.rxId });
+    if (rxEvidenceId) redirect(`/evidence/${rxEvidenceId}`);
+  }
 
   return (
     <AppShell
@@ -33,22 +50,12 @@ export default async function EvidencePage({
       plantName={DEMO_PLANT.plantName}
       role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
-      screenTitle={scope.title}
-      contextSummary={[
-        scope.assetLabel,
-        pack.missing.length ? `Partial: ${pack.missing.join(", ")}` : "Complete",
-      ]}
-      focusEntity={
-        scope.rxId
-          ? { type: "prescription", id: scope.rxId }
-          : scope.alarmId
-            ? { type: "alarm", id: scope.alarmId }
-            : undefined
-      }
+      screenTitle="Evidence"
+      contextSummary={[`${evidenceSamplesFixture.length} sample packs`]}
       criticalAlarmCount={demoCriticalAlarmCount()}
     >
-      <PageHead eyebrow="Proof" title={scope.title} />
-      <EvidenceExplorer pack={pack} />
+      <PageHead eyebrow="Proof" title="Evidence index" />
+      <EvidenceIndex samples={evidenceSamplesFixture} />
     </AppShell>
   );
 }

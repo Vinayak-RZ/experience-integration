@@ -13,6 +13,7 @@ import {
   type ClaimBucket,
 } from "@/lib/ledger";
 import { Panel, StatusChip } from "@/components/ui/primitives";
+import { resolveEvidenceIdForRx } from "@/fixtures/evidence-samples";
 
 const bucketLabel: Record<ClaimBucket | "all", string> = {
   all: "All",
@@ -135,12 +136,18 @@ export function SavingsLedger({ rows }: { rows: LedgerEntry[] }) {
                 {claim.showBillVerified ? " · Bill line refs present" : ""}
               </p>
               <div style={{ marginTop: 12 }}>
-                <Link
-                  href={`/evidence?rxId=${entry.prescriptionId}`}
-                  style={{ fontWeight: 700, fontSize: 13 }}
-                >
-                  Open proof
-                </Link>
+                {(() => {
+                  const evidenceId = resolveEvidenceIdForRx(entry.prescriptionId);
+                  if (!evidenceId) return null;
+                  return (
+                    <Link
+                      href={`/evidence/${evidenceId}`}
+                      style={{ fontWeight: 700, fontSize: 13 }}
+                    >
+                      Open proof
+                    </Link>
+                  );
+                })()}
               </div>
             </Panel>
           );

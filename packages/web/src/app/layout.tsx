@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@/styles/tokens.css";
 import "@/styles/forge-ui.css";
 import "@/components/shell/shell.css";
+import "@/components/evidence/evidence.css";
 
 export const metadata: Metadata = {
   title: "Stamped Energy",

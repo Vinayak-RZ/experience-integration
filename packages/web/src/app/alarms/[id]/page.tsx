@@ -11,6 +11,7 @@ import {
   connectionFixture,
   demoCriticalAlarmCount,
 } from "@/fixtures/demo";
+import { resolveEvidenceIdForAlarm } from "@/fixtures/evidence-samples";
 import { actionsForState } from "@/lib/alarms";
 import { formatIndianNum } from "@/lib/format";
 
@@ -35,6 +36,7 @@ export default async function AlarmDetailPage({
 
   const actions = actionsForState(alarm.state);
   const asset = assetById(alarm.assetId);
+  const evidenceId = resolveEvidenceIdForAlarm(alarm.id);
 
   return (
     <AppShell
@@ -88,9 +90,11 @@ export default async function AlarmDetailPage({
         ) : null}
         <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
           {actions.includes("ack") ? <PrimaryButton>Ack</PrimaryButton> : null}
-          <Link href={`/evidence?alarmId=${alarm.id}`} style={linkBtn}>
-            Open evidence
-          </Link>
+          {evidenceId ? (
+            <Link href={`/evidence/${evidenceId}`} style={linkBtn}>
+              Open evidence
+            </Link>
+          ) : null}
           {alarm.relatedPrescriptionId ? (
             <Link
               href={`/prescriptions/${alarm.relatedPrescriptionId}`}

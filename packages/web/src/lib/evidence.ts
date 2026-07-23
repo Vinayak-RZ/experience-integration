@@ -1,5 +1,20 @@
+import {
+  findEvidenceSample,
+  resolvePrimaryEvidenceId,
+  type EvidenceSample,
+} from "@/fixtures/evidence-samples";
 import type { Alarm, Prescription } from "@/lib/types";
 import { resolveRouteState, type RouteStateModel } from "@/lib/route-state";
+
+export type { EvidenceSample } from "@/fixtures/evidence-samples";
+export {
+  evidenceSamplesFixture,
+  findEvidenceSample,
+  resolveEvidenceIdForAlarm,
+  resolveEvidenceIdForFinding,
+  resolveEvidenceIdForRx,
+  resolvePrimaryEvidenceId,
+} from "@/fixtures/evidence-samples";
 
 export type EvidenceScope = {
   plantId: string;
@@ -49,6 +64,11 @@ export function resolveEvidenceScope(input: {
       : undefined;
 
   if (alarm) {
+    const sampleId = resolvePrimaryEvidenceId({
+      alarmId: alarm.id,
+      findingId: alarm.findingId,
+    });
+    const sample = sampleId ? findEvidenceSample(sampleId) : undefined;
     return {
       plantId: input.plantId,
       assetId: alarm.assetId,
@@ -56,7 +76,7 @@ export function resolveEvidenceScope(input: {
       metric: "active_power_kw",
       from: "2026-06-21T00:00:00+05:30",
       to: "2026-07-21T00:00:00+05:30",
-      baselineId: "bl_kiln_1_7d",
+      baselineId: sample?.baselineId ?? "bl_kiln_1_7d",
       alarmId: alarm.id,
       rxId: rx?.id ?? alarm.relatedPrescriptionId,
       title: `Proof · ${alarm.assetLabel}`,
@@ -64,14 +84,18 @@ export function resolveEvidenceScope(input: {
   }
 
   if (rx) {
+    const sample = resolvePrimaryEvidenceId({ rxId: rx.id })
+      ? findEvidenceSample(resolvePrimaryEvidenceId({ rxId: rx.id })!)
+      : undefined;
+    const linkedAlarm = input.alarms.find((a) => a.relatedPrescriptionId === rx.id);
     return {
       plantId: input.plantId,
-      assetId: "kiln_1",
-      assetLabel: "Kiln 1",
+      assetId: sample?.assetId ?? linkedAlarm?.assetId ?? "kiln_1",
+      assetLabel: sample?.assetLabel ?? linkedAlarm?.assetLabel ?? "Kiln 1",
       metric: "active_power_kw",
       from: "2026-06-21T00:00:00+05:30",
       to: "2026-07-21T00:00:00+05:30",
-      baselineId: "bl_kiln_1_7d",
+      baselineId: sample?.baselineId ?? "bl_kiln_1_7d",
       rxId: rx.id,
       title: `Proof · ${rx.title}`,
     };

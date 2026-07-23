@@ -3,12 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Alarm } from "@/lib/types";
-import { assetsFixture } from "@/fixtures/demo";
-import {
-  alarmsFixture,
-  prescriptionsFixture,
-  DEMO_PLANT,
-} from "@/fixtures/demo";
+import { assetsFixture, alarmsFixture, prescriptionsFixture, DEMO_PLANT } from "@/fixtures/demo";
+import { resolveEvidenceIdForAlarm } from "@/fixtures/evidence-samples";
 import { buildEvidencePack, resolveEvidenceScope } from "@/lib/evidence";
 import {
   GhostButton,
@@ -246,6 +242,26 @@ export function AlarmConsole({ initial }: { initial: Alarm[] }) {
                   Open prescription
                 </Link>
               ) : null}
+              {(() => {
+                const evidenceId = resolveEvidenceIdForAlarm(current.id);
+                if (!evidenceId) return null;
+                return (
+                  <Link
+                    href={`/evidence/${evidenceId}`}
+                    style={{
+                      minHeight: 48,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      padding: "0 18px",
+                      borderRadius: "var(--forge-radius-md)",
+                      border: "1px solid var(--forge-outline-variant)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Open evidence
+                  </Link>
+                );
+              })()}
               <Link
                 href={`/alarms/${current.id}`}
                 style={{

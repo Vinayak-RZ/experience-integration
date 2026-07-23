@@ -24,6 +24,7 @@ export function LoadDial({
   size = 118,
   label,
   unit = "%",
+  displayText,
 }: {
   /** Legacy prop — same as `value`. */
   loadPct?: number;
@@ -32,6 +33,8 @@ export function LoadDial({
   size?: number;
   label: string;
   unit?: string;
+  /** Overrides the numeric readout in the dial centre. */
+  displayText?: string;
 }) {
   const raw = value ?? loadPct ?? 0;
   const cx = size / 2;
@@ -40,8 +43,9 @@ export function LoadDial({
   const pct = Math.max(0, Math.min(1, raw / max));
   const angle = START + SWEEP * pct;
 
-  const zNormal = 85 / max;
-  const zWarn = 100 / max;
+  /** Coloured bands always use the standard 0–120% load scale. */
+  const zNormal = 85 / 120;
+  const zWarn = 100 / 120;
 
   const ticks = Array.from({ length: 11 }, (_, i) => {
     const a = START + (SWEEP * i) / 10;
@@ -53,7 +57,10 @@ export function LoadDial({
   const [nx, ny] = polar(cx, cy, r - 14, angle);
 
   const valueColor =
-    raw > 100 ? "var(--forge-error)" : raw > 85 ? "var(--forge-warning)" : "var(--forge-tertiary)";
+    raw > max * 0.85 ? "var(--forge-error)" : raw > max * 0.7 ? "var(--forge-warning)" : "var(--forge-tertiary)";
+
+  const centreMain = displayText ?? String(Math.round(raw));
+  const centreFontSize = displayText && displayText.length > 4 ? size * 0.13 : size * 0.18;
 
   return (
     <div
@@ -115,13 +122,15 @@ export function LoadDial({
           textAnchor="middle"
           fontFamily="var(--forge-font-display)"
           fontWeight={800}
-          fontSize={size * 0.18}
+          fontSize={centreFontSize}
           fill={valueColor}
         >
-          {Math.round(raw)}
-          <tspan fontSize={size * 0.1} dx={1}>
-            {unit}
-          </tspan>
+          {centreMain}
+          {unit ? (
+            <tspan fontSize={size * 0.1} dx={1}>
+              {unit}
+            </tspan>
+          ) : null}
         </text>
         {label ? (
           <text

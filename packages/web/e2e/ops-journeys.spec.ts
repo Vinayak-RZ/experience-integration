@@ -17,9 +17,9 @@ test.describe("operational journeys", () => {
   test("prescription triage and evidence scope", async ({ page }) => {
     await page.goto("/prescriptions");
     await expect(page.locator("main").getByText(/Prescription queue|Needs review/i).first()).toBeVisible();
-    await page.goto("/evidence?alarmId=alm_1001");
-    await expect(page.locator("[data-evidence], main").first()).toBeVisible();
-    await expect(page.locator("main").getByText(/Kiln|baseline|lineage|Proof/i).first()).toBeVisible();
+    await page.goto("/evidence/evd_4401");
+    await expect(page.locator("[data-evidence-detail], main").first()).toBeVisible();
+    await expect(page.locator("main").getByText(/MD window|SIGNAL WINDOW|Tag/i).first()).toBeVisible();
   });
 
   test("ledger claim safety and export centre approval", async ({ page }) => {

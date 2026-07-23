@@ -23,7 +23,7 @@ const routes = [
   { path: "/alarms/alm_1001", name: "03-alarm-detail" },
   { path: "/prescriptions", name: "04-prescriptions" },
   { path: "/prescriptions/rx_9001", name: "05-prescription-detail" },
-  { path: "/evidence?alarmId=alm_1001", name: "06-evidence" },
+  { path: "/evidence/evd_4401", name: "06-evidence" },
   { path: "/analyst", name: "07-analyst" },
   { path: "/reports", name: "08-reports" },
   { path: "/energy", name: "09-energy" },
@@ -108,7 +108,7 @@ const browser = await chromium.launch({ headless: true });
   await settle(page);
 
   // Evidence + reports export approve
-  await page.goto(`${BASE}/evidence?alarmId=alm_1001`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE}/evidence/evd_4401`, { waitUntil: "domcontentloaded" });
   await settle(page);
   await page.goto(`${BASE}/reports`, { waitUntil: "domcontentloaded" });
   await settle(page);

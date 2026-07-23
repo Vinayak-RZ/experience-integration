@@ -6,6 +6,12 @@ import {
   prescriptionsFixture,
 } from "../src/fixtures/demo.js";
 import {
+  findEvidenceSample,
+  resolveEvidenceIdForAlarm,
+  resolveEvidenceIdForRx,
+  resolvePrimaryEvidenceId,
+} from "../src/fixtures/evidence-samples.js";
+import {
   buildEvidencePack,
   evidenceRouteState,
   resolveEvidenceScope,
@@ -24,15 +30,16 @@ describe("evidence scope and honesty", () => {
     assert.equal(scope.rxId, "rx_9001");
   });
 
-  it("pre-scopes from prescription id alone", () => {
+  it("pre-scopes from prescription id alone with linked asset", () => {
     const scope = resolveEvidenceScope({
       plantId: DEMO_PLANT.plantId,
-      rxId: "rx_9002",
+      rxId: "rx_9005",
       alarms: alarmsFixture,
       prescriptions: prescriptionsFixture,
     });
-    assert.equal(scope.rxId, "rx_9002");
-    assert.match(scope.title, /APFC/);
+    assert.equal(scope.rxId, "rx_9005");
+    assert.equal(scope.assetId, "mill_2");
+    assert.match(scope.title, /Raw Mill 2/);
   });
 
   it("keeps baseline missing when gated — never invents band", () => {
@@ -59,5 +66,33 @@ describe("evidence scope and honesty", () => {
     assert.deepEqual(pack.missing, []);
     assert.equal(evidenceRouteState(pack).kind, "default");
     assert.ok(pack.lineage.sources.includes("L2 baseline"));
+  });
+});
+
+describe("evidence sample routing", () => {
+  it("maps alarms to specific evidence ids", () => {
+    assert.equal(resolveEvidenceIdForAlarm("alm_1001"), "evd_4401");
+    assert.equal(resolveEvidenceIdForAlarm("alm_1006"), "evd_4411");
+    assert.equal(resolveEvidenceIdForAlarm("alm_1005"), "evd_4410");
+  });
+
+  it("maps prescriptions to primary evidence ids", () => {
+    assert.equal(resolveEvidenceIdForRx("rx_9001"), "evd_4401");
+    assert.equal(resolveEvidenceIdForRx("rx_9005"), "evd_4411");
+  });
+
+  it("loads rich sample fixtures by id", () => {
+    const sample = findEvidenceSample("evd_4411");
+    assert.ok(sample);
+    assert.equal(sample?.categoryBadge.label, "Idle kWh");
+    assert.equal(sample?.tagRows.length, 4);
+    assert.equal(sample?.chart.kind, "bar");
+  });
+
+  it("resolves primary evidence from alarm query params", () => {
+    assert.equal(
+      resolvePrimaryEvidenceId({ alarmId: "alm_1002" }),
+      "evd_4402",
+    );
   });
 });
