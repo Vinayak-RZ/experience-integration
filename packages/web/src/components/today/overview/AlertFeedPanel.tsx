@@ -1,0 +1,123 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Panel } from "@/components/ui/primitives";
+import { FilterIconBtn, SeverityTag } from "@/components/ui/indicators";
+import { AlertTriangle, CheckCircle, Filter } from "@/components/ui/icons";
+import { OVERVIEW_ALERTS, type AlertSeverity } from "@/fixtures/overview-demo";
+
+const BAR: Record<AlertSeverity, string> = {
+  CRITICAL: "var(--forge-error)",
+  WARNING: "var(--forge-warning)",
+  INFO: "var(--forge-outline)",
+  RESOLVED: "var(--forge-tertiary)",
+};
+
+const SEV_LABEL: Record<AlertSeverity, string> = {
+  CRITICAL: "Critical",
+  WARNING: "Warning",
+  INFO: "Info",
+  RESOLVED: "Resolved",
+};
+
+const FILTERS = [
+  { key: "All", icon: Filter, tone: "neutral" as const },
+  { key: "Critical", icon: AlertTriangle, tone: "critical" as const },
+  { key: "Warning", icon: AlertTriangle, tone: "warning" as const },
+  { key: "Resolved", icon: CheckCircle, tone: "good" as const },
+] as const;
+
+type FilterKey = (typeof FILTERS)[number]["key"];
+
+export function AlertFeedPanel() {
+  const [filter, setFilter] = useState<FilterKey>("All");
+
+  const rows = useMemo(() => {
+    if (filter === "All") return OVERVIEW_ALERTS;
+    return OVERVIEW_ALERTS.filter((a) => a.severity === filter.toUpperCase());
+  }, [filter]);
+
+  return (
+    <Panel style={{ display: "flex", flexDirection: "column", padding: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: 20, flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <p className="forge-eyebrow">Operational Intelligence</p>
+          <h3 className="forge-card-title">Live Anomaly & Alert Feed</h3>
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }} role="group" aria-label="Filter alerts">
+          {FILTERS.map((f) => (
+            <FilterIconBtn
+              key={f.key}
+              active={filter === f.key}
+              onClick={() => setFilter(f.key)}
+              icon={f.icon}
+              label={f.key}
+              tone={f.tone}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="forge-scroll-thin" style={{ maxHeight: 240, overflowY: "auto" }}>
+        {rows.map((a, i) => (
+          <div
+            key={a.id}
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              padding: "10px 14px",
+              borderBottom: i < rows.length - 1 ? "1px solid var(--forge-outline-variant)" : "none",
+            }}
+          >
+            <span
+              style={{
+                width: 3,
+                alignSelf: "stretch",
+                borderRadius: 4,
+                background: BAR[a.severity],
+                flexShrink: 0,
+              }}
+            />
+            <div style={{ width: 48, flexShrink: 0, fontSize: 10.5, color: "var(--forge-on-surface-variant)", paddingTop: 2 }}>
+              {a.time === "Now" ? (
+                <span className="forge-pulse-dot" style={{ background: "var(--forge-error)", display: "inline-block" }} title="Live" />
+              ) : (
+                a.time
+              )}
+            </div>
+            <SeverityTag status={a.severity} label={SEV_LABEL[a.severity]} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ color: "var(--forge-primary)", fontWeight: 600, fontSize: 13, marginRight: 6 }}>
+                {a.machine}
+              </span>
+              <span style={{ fontSize: 13 }}>{a.message}</span>
+            </div>
+            {a.action !== "—" ? (
+              <button
+                type="button"
+                style={{
+                  flexShrink: 0,
+                  color: "var(--forge-primary)",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  paddingTop: 2,
+                  cursor: "pointer",
+                  background: "none",
+                  border: "none",
+                }}
+              >
+                →
+              </button>
+            ) : null}
+          </div>
+        ))}
+        {rows.length === 0 ? (
+          <div style={{ padding: 24, textAlign: "center", color: "var(--forge-on-surface-variant)", fontSize: 13 }}>
+            No {filter.toLowerCase()} alerts in the current window.
+          </div>
+        ) : null}
+      </div>
+    </Panel>
+  );
+}

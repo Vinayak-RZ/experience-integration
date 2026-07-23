@@ -2,6 +2,7 @@ import { PrescriptionQueue } from "@/components/prescriptions/PrescriptionQueue"
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
 import {
+  DEMO_SHELL_ROLE,
   DEMO_PLANT,
   connectionFixture,
   demoCriticalAlarmCount,
@@ -16,7 +17,7 @@ export default function PrescriptionsPage() {
     <AppShell
       active="prescriptions"
       plantName={DEMO_PLANT.plantName}
-      role="supervisor"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Prescription queue"
       contextSummary={[

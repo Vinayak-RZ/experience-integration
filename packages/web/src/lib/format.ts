@@ -14,6 +14,11 @@ export function formatIndianNum(n: number, digits = 0): string {
   }).format(n);
 }
 
+export function signedPct(n: number): string {
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "";
+  return `${sign}${Math.abs(n).toFixed(1)}%`;
+}
+
 export function claimBadgeLabel(
   status: string | undefined,
 ): { label: string; tone: "good" | "warning" | "neutral" | "critical" } {

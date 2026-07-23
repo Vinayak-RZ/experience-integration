@@ -3,6 +3,7 @@ import { OverviewBoard } from "@/components/today/OverviewBoard";
 import { PageHead } from "@/components/ui/primitives";
 import {
   DEMO_PLANT,
+  DEMO_SHELL_ROLE,
   alarmsFixture,
   assetsFixture,
   connectionFixture,
@@ -25,7 +26,7 @@ export default function OverviewPage() {
     <AppShell
       active="today"
       plantName={DEMO_PLANT.plantName}
-      role={ROLE}
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Overview"
       contextSummary={[
@@ -37,7 +38,7 @@ export default function OverviewPage() {
       criticalAlarmCount={critical}
     >
       <PageHead eyebrow={`${DEMO_PLANT.orgName} · demo`} title="Overview" />
-      <p style={{ margin: "0 0 4px", fontSize: 13, color: "var(--forge-on-surface-variant)" }}>
+      <p className="forge-page-lede">
         {DEMO_PLANT.contractDemandNote} · As of {DEMO_PLANT.demoAsOf} · {DEMO_PLANT.tariff}
       </p>
       <OverviewBoard

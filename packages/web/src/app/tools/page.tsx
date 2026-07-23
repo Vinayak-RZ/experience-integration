@@ -10,11 +10,11 @@ import {
   Users,
 } from "@/components/ui/icons";
 import {
+  DEMO_SHELL_ROLE,
   DEMO_PLANT,
   connectionFixture,
   demoCriticalAlarmCount,
 } from "@/fixtures/demo";
-
 const TOOLS = [
   {
     href: "/energy",
@@ -59,7 +59,7 @@ export default function ToolsPage() {
     <AppShell
       active="tools"
       plantName={DEMO_PLANT.plantName}
-      role="plant_head"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Tools"
       contextSummary={["Specialized plant tools", DEMO_PLANT.plantName]}

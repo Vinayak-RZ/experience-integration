@@ -10,6 +10,7 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from "react";
+import { StatusBadge } from "@/components/ui/indicators";
 
 /** Touch / primary CTA floor — design system §7.1 */
 export const TOUCH_MIN_PX = 48;
@@ -25,48 +26,21 @@ export const STATUS_LABELS: Record<StatusTone, string> = {
   info: "Info",
 };
 
-const toneBg: Record<StatusTone, string> = {
-  critical: "rgba(186, 26, 26, 0.12)",
-  warning: "rgba(201, 122, 0, 0.14)",
-  good: "rgba(27, 107, 58, 0.12)",
-  neutral: "rgba(143, 112, 107, 0.16)",
-  info: "rgba(0, 102, 107, 0.12)",
-};
-
-const toneFg: Record<StatusTone, string> = {
-  critical: "var(--forge-error)",
-  warning: "var(--forge-warning)",
-  good: "var(--forge-good)",
-  neutral: "var(--forge-on-surface-variant)",
-  info: "var(--forge-info)",
-};
-
 export function StatusChip({
   tone,
   children,
+  compact,
+  variant,
 }: {
   tone: StatusTone;
   children?: ReactNode;
+  compact?: boolean;
+  variant?: "dot" | "inline" | "pill";
 }) {
-  const label = STATUS_LABELS[tone];
   return (
-    <span
-      role="status"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        borderRadius: "var(--forge-radius-sm)",
-        fontSize: 12,
-        fontWeight: 600,
-        padding: "3px 9px",
-        background: toneBg[tone],
-        color: toneFg[tone],
-      }}
-    >
-      <span>{label}</span>
-      {children ? <span>{children}</span> : null}
-    </span>
+    <StatusBadge tone={tone} variant={variant} compact={compact}>
+      {children}
+    </StatusBadge>
   );
 }
 
@@ -124,6 +98,7 @@ export function PageHead({
 }) {
   return (
     <header
+      className="forge-page-head"
       style={{
         display: "flex",
         justifyContent: "space-between",
@@ -147,6 +122,32 @@ export function PageHead({
       </div>
       {actions}
     </header>
+  );
+}
+
+/** Standard panel header — eyebrow, title, optional subtitle/meta */
+export function PanelHeader({
+  eyebrow,
+  title,
+  subtitle,
+  meta,
+  className,
+}: {
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  meta?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`forge-panel-header${className ? ` ${className}` : ""}`}>
+      <div className="forge-panel-header__body">
+        {eyebrow ? <p className="forge-eyebrow">{eyebrow}</p> : null}
+        {title ? <h3 className="forge-card-title">{title}</h3> : null}
+        {subtitle ? <p className="forge-panel-header__subtitle">{subtitle}</p> : null}
+      </div>
+      {meta ? <div className="forge-panel-header__meta">{meta}</div> : null}
+    </div>
   );
 }
 

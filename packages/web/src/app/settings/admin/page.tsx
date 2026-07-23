@@ -1,18 +1,18 @@
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead, Panel, StatusChip } from "@/components/ui/primitives";
 import {
+  DEMO_SHELL_ROLE,
   DEMO_PLANT,
   auditEventsFixture,
   connectionFixture,
   membersFixture,
 } from "@/fixtures/demo";
-
 export default function AdminSettingsPage() {
   return (
     <AppShell
       active="admin"
       plantName={DEMO_PLANT.plantName}
-      role="admin"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Admin"
       contextSummary={[

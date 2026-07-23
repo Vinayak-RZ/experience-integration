@@ -22,6 +22,9 @@ export const DEMO_PLANT = {
   demoAsOf: "2026-07-21T10:15:00+05:30",
 };
 
+/** Single demo role so sidebar nav is identical on every screen. */
+export const DEMO_SHELL_ROLE: Role = "admin";
+
 export const connectionFixture: ConnectionStatus = {
   sse: "live",
   lastEventAt: DEMO_PLANT.demoAsOf,

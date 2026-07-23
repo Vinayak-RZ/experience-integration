@@ -5,6 +5,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import { PageHead, Panel, PrimaryButton, StatusChip } from "@/components/ui/primitives";
 import {
   DEMO_PLANT,
+  DEMO_SHELL_ROLE,
   alarmsFixture,
   assetById,
   connectionFixture,
@@ -39,7 +40,7 @@ export default async function AlarmDetailPage({
     <AppShell
       active="alarms"
       plantName={DEMO_PLANT.plantName}
-      role="supervisor"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle={`Alarm ${alarm.assetLabel}`}
       contextSummary={[alarm.summary]}

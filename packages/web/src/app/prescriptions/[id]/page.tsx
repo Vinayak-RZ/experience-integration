@@ -5,6 +5,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import { DataTable, PageHead, Panel, StatusChip } from "@/components/ui/primitives";
 import {
   DEMO_PLANT,
+  DEMO_SHELL_ROLE,
   alarmsFixture,
   connectionFixture,
   demoCriticalAlarmCount,
@@ -59,7 +60,7 @@ export default async function PrescriptionDetailPage({
     <AppShell
       active="prescriptions"
       plantName={DEMO_PLANT.plantName}
-      role="supervisor"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle={rx.title}
       contextSummary={[rx.why, formatInr(rx.impactInrPerMonth) + "/mo"]}

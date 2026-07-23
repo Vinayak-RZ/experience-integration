@@ -84,6 +84,8 @@ describe("responsive Forge shell", () => {
     assert.match(shellCss, /max-width:\s*899px/);
     assert.match(shellCss, /\.forge-shell__dock/);
     assert.match(shellCss, /\.forge-shell__sidebar/);
+    assert.match(shellCss, /height:\s*100dvh/);
+    assert.match(shellCss, /overflow:\s*hidden/);
   });
 
   it("renders landmarks, skip link, and truthful offline banner", () => {

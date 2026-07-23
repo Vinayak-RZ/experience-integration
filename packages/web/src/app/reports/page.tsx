@@ -3,6 +3,7 @@ import { PageHead, Panel } from "@/components/ui/primitives";
 import { SavingsLedger } from "@/components/ledger/SavingsLedger";
 import { ExportCentre } from "@/components/reports/ExportCentre";
 import {
+  DEMO_SHELL_ROLE,
   DEMO_PLANT,
   connectionFixture,
   demoCriticalAlarmCount,
@@ -22,7 +23,7 @@ export default function ReportsPage() {
     <AppShell
       active="reports"
       plantName={DEMO_PLANT.plantName}
-      role="plant_head"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Reports and ledger"
       contextSummary={[

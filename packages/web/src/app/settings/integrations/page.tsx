@@ -1,18 +1,18 @@
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead, Panel, StatusChip } from "@/components/ui/primitives";
 import {
+  DEMO_SHELL_ROLE,
   DEMO_PLANT,
   apiKeysFixture,
   connectionFixture,
   webhooksFixture,
 } from "@/fixtures/demo";
-
 export default function IntegrationsSettingsPage() {
   return (
     <AppShell
       active="integrations"
       plantName={DEMO_PLANT.plantName}
-      role="admin"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Integrations"
       contextSummary={["API keys", "Webhooks", "Entra", "Power BI"]}

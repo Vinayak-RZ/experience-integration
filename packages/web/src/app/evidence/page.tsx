@@ -2,6 +2,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
 import { EvidenceExplorer } from "@/components/evidence/EvidenceExplorer";
 import {
+  DEMO_SHELL_ROLE,
   DEMO_PLANT,
   alarmsFixture,
   connectionFixture,
@@ -30,7 +31,7 @@ export default async function EvidencePage({
     <AppShell
       active="evidence"
       plantName={DEMO_PLANT.plantName}
-      role="supervisor"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle={scope.title}
       contextSummary={[

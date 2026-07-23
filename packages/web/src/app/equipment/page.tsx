@@ -1,32 +1,32 @@
-import { EquipmentMap } from "@/components/analytics/EquipmentMap";
+import { MachineHealthBoard } from "@/components/equipment/MachineHealthBoard";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
 import {
   DEMO_PLANT,
-  assetsFixture,
+  DEMO_SHELL_ROLE,
   connectionFixture,
   demoCriticalAlarmCount,
 } from "@/fixtures/demo";
 
 export default function EquipmentPage() {
-  const hot = assetsFixture.filter((a) => a.health === "hot").length;
-  const watch = assetsFixture.filter((a) => a.health === "watch").length;
-
   return (
     <AppShell
       active="equipment"
       plantName={DEMO_PLANT.plantName}
-      role="energy_manager"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Machine Health"
-      contextSummary={[
-        `${assetsFixture.length} assets · ${hot} hot · ${watch} watch`,
-        "Load dials",
-      ]}
+      contextSummary={["115 assets monitored", "Predictive condition monitoring", "Modbus / OPC-UA / MQTT"]}
       criticalAlarmCount={demoCriticalAlarmCount()}
     >
-      <PageHead eyebrow="Operations" title="Machine Health" />
-      <EquipmentMap />
+      <PageHead
+        eyebrow="Operations"
+        title="Machine Health"
+      />
+      <p style={{ margin: 0, fontSize: 14, color: "var(--forge-on-surface-variant)" }}>
+        Predictive condition monitoring · 115 assets · live load dials · vibration & thermal trends
+      </p>
+      <MachineHealthBoard />
     </AppShell>
   );
 }

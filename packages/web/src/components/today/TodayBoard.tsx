@@ -4,9 +4,10 @@ import Link from "next/link";
 import type { TodaySignal } from "@/lib/types";
 import type { RouteStateModel } from "@/lib/route-state";
 import { Gauge } from "@/components/charts/Gauge";
-import { Panel, StatusChip } from "@/components/ui/primitives";
+import { Panel } from "@/components/ui/primitives";
 import { RouteStateView } from "@/components/states/RouteStateView";
 import { TODAY_SIGNAL_CAP } from "@/lib/today-signals";
+import { SignalCard } from "@/components/today/SignalCard";
 
 export function TodayBoard({
   signals,
@@ -28,69 +29,21 @@ export function TodayBoard({
         data-signal-count={capped.length}
         style={{ display: "flex", flexDirection: "column", gap: 20 }}
       >
-        <div
-          role="list"
-          aria-label="Decision signals"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-            gap: 12,
-          }}
-        >
+        <div className="forge-signal-strip" role="list" aria-label="Decision signals">
           {capped.map((s) => (
             <Link
               key={s.id}
               href={s.href}
               role="listitem"
-              style={{ display: "block" }}
+              className="forge-signal-card-link"
               data-signal-id={s.id}
             >
-              <Panel style={{ padding: 16, height: "100%" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 8,
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: "var(--forge-on-surface-variant)",
-                    }}
-                  >
-                    {s.label}
-                  </p>
-                  <StatusChip tone={s.tone === "good" ? "good" : s.tone} />
-                </div>
-                <p
-                  className="tabular"
-                  style={{
-                    margin: "10px 0 4px",
-                    fontFamily: "var(--forge-font-display)",
-                    fontWeight: 800,
-                    fontSize: 26,
-                  }}
-                >
-                  {s.value}
-                </p>
-                {s.hint ? (
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: 12,
-                      color: "var(--forge-on-surface-variant)",
-                    }}
-                  >
-                    {s.hint}
-                  </p>
-                ) : null}
-              </Panel>
+              <SignalCard
+                label={s.label}
+                value={s.value}
+                hint={s.hint}
+                tone={s.tone === "good" ? "good" : s.tone}
+              />
             </Link>
           ))}
         </div>

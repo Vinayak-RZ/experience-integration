@@ -3,6 +3,8 @@ import type { SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number; strokeWidth?: number };
 
+export type { IconProps };
+
 function Icon({ size = 18, strokeWidth = 2, children, ...rest }: IconProps & { children: React.ReactNode }) {
   return (
     <svg
@@ -174,6 +176,131 @@ export function ChevronRight(p: IconProps) {
   return (
     <Icon {...p}>
       <path d="m9 18 6-6-6-6" />
+    </Icon>
+  );
+}
+
+export function ChevronLeft(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="m15 18-6-6 6-6" />
+    </Icon>
+  );
+}
+
+export function CheckCircle(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m9 12 2 2 4-4" />
+    </Icon>
+  );
+}
+
+export function Circle(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <circle cx="12" cy="12" r="10" />
+    </Icon>
+  );
+}
+
+export function Info(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </Icon>
+  );
+}
+
+export function TrendingUp(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="m22 7-8.5 8.5-5-5L2 17" />
+      <path d="M16 7h6v6" />
+    </Icon>
+  );
+}
+
+export function TrendingDown(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="m22 17-8.5-8.5-5 5L2 7" />
+      <path d="M16 17h6v-6" />
+    </Icon>
+  );
+}
+
+export function Shield(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+    </Icon>
+  );
+}
+
+export function Clock(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 6v6l4 2" />
+    </Icon>
+  );
+}
+
+export function Heart(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+    </Icon>
+  );
+}
+
+export function Sparkles(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="m12 3 1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5Z" />
+      <path d="M5 3v4" />
+      <path d="M3 5h4" />
+      <path d="M19 17v4" />
+      <path d="M17 19h4" />
+    </Icon>
+  );
+}
+
+export function Thermometer(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z" />
+    </Icon>
+  );
+}
+
+export function IndianRupee(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M6 3h12" />
+      <path d="M6 8h12" />
+      <path d="M6 13h8a4 4 0 0 1 0 8H6" />
+    </Icon>
+  );
+}
+
+export function Filter(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z" />
+    </Icon>
+  );
+}
+
+export function CircleDot(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
     </Icon>
   );
 }

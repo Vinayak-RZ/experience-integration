@@ -2,12 +2,12 @@ import { AlarmConsole } from "@/components/alarms/AlarmConsole";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
 import {
+  DEMO_SHELL_ROLE,
   DEMO_PLANT,
   alarmsFixture,
   connectionFixture,
   demoCriticalAlarmCount,
 } from "@/fixtures/demo";
-
 export default function AlarmsPage() {
   const critical = demoCriticalAlarmCount();
   const open = alarmsFixture.filter((a) => a.state !== "cleared").length;
@@ -16,7 +16,7 @@ export default function AlarmsPage() {
     <AppShell
       active="alarms"
       plantName={DEMO_PLANT.plantName}
-      role="supervisor"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="EMS alarm console"
       contextSummary={[

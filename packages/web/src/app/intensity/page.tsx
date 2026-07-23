@@ -3,6 +3,7 @@ import { TodMdBoard } from "@/components/analytics/TodMdBoard";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
 import {
+  DEMO_SHELL_ROLE,
   DEMO_PLANT,
   connectionFixture,
   demoCriticalAlarmCount,
@@ -17,7 +18,7 @@ export default function IntensityPage() {
     <AppShell
       active="intensity"
       plantName={DEMO_PLANT.plantName}
-      role="energy_manager"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Sustainability"
       contextSummary={[

@@ -1,14 +1,14 @@
 import { AppShell } from "@/components/shell/AppShell";
 import { AssignmentsBoard } from "@/components/assignments/AssignmentsBoard";
 import { PageHead } from "@/components/ui/primitives";
-import { DEMO_PLANT, connectionFixture } from "@/fixtures/demo";
+import { DEMO_SHELL_ROLE, DEMO_PLANT, connectionFixture } from "@/fixtures/demo";
 
 export default function AssignmentsPage() {
   return (
     <AppShell
       active="assignments"
       plantName={DEMO_PLANT.plantName}
-      role="admin"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Assignments"
       contextSummary={[

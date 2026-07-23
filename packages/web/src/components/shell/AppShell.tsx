@@ -206,7 +206,7 @@ export function AppShell({
               {sse.banner}
             </div>
           ) : null}
-          {children}
+          <div className="forge-shell__content">{children}</div>
         </main>
       </div>
 

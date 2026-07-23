@@ -2,6 +2,7 @@ import { EnergyBoard } from "@/components/analytics/EnergyBoard";
 import { AppShell } from "@/components/shell/AppShell";
 import { PageHead } from "@/components/ui/primitives";
 import {
+  DEMO_SHELL_ROLE,
   DEMO_PLANT,
   connectionFixture,
   demoCriticalAlarmCount,
@@ -14,7 +15,7 @@ export default function EnergyPage() {
     <AppShell
       active="energy"
       plantName={DEMO_PLANT.plantName}
-      role="energy_manager"
+      role={DEMO_SHELL_ROLE}
       connection={connectionFixture}
       screenTitle="Energy Analytics"
       contextSummary={[
